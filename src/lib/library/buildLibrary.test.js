@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest'
-import { deriveTrackTitleFallback, formatMood, buildLibraryEntries, searchLibraryEntries } from './buildLibrary.js'
+import {
+  deriveTrackTitleFallback,
+  formatMood,
+  buildLibraryEntries,
+  searchLibraryEntries,
+  groupEntriesByAlbum,
+} from './buildLibrary.js'
 
 describe('deriveTrackTitleFallback', () => {
   it('strips the artist-id prefix and a leading track-number token', () => {
@@ -48,6 +54,65 @@ describe('buildLibraryEntries', () => {
   it('carries the owning artist id and name onto each entry', () => {
     const entries = buildLibraryEntries(artists, tracksById)
     expect(entries.find((e) => e.trackId === 'b1')).toMatchObject({ artistId: 'b', artistName: 'Artist B' })
+  })
+})
+
+describe('buildLibraryEntries with albums', () => {
+  const artists = [{ artist_id: 'a', name: 'Artist A', track_ids: ['a1', 'a2', 'a3'] }]
+  const tracksById = {
+    a1: { track_id: 'a1', title: 'One', mood: 'happy_pop', tempo_bpm: 120 },
+    a2: { track_id: 'a2', title: 'Two', mood: 'sad_ballad', tempo_bpm: 80 },
+    a3: { track_id: 'a3', title: 'Three', mood: 'happy_pop', tempo_bpm: 100 },
+  }
+  const albums = [
+    { album_id: 'lp', artist_id: 'a', title: 'Долгоиграющий', track_ids: ['a2', 'a1'] },
+    { album_id: 'ep', artist_id: 'a', title: 'Мини', track_ids: ['a3'] },
+  ]
+
+  it('tags each entry with its album', () => {
+    const entries = buildLibraryEntries(artists, tracksById, albums)
+    expect(entries.find((e) => e.trackId === 'a1')).toMatchObject({ albumId: 'lp', albumTitle: 'Долгоиграющий' })
+    expect(entries.find((e) => e.trackId === 'a3')).toMatchObject({ albumId: 'ep', albumTitle: 'Мини' })
+  })
+
+  it('takes track order from the album, not from the artist', () => {
+    // У артиста порядок a1,a2,a3 — но альбом задаёт a2,a1.
+    const entries = buildLibraryEntries(artists, tracksById, albums)
+    expect(entries.map((e) => e.trackId)).toEqual(['a2', 'a1', 'a3'])
+  })
+
+  it('falls back to the flat artist list when no albums are given', () => {
+    const entries = buildLibraryEntries(artists, tracksById)
+    expect(entries.map((e) => e.trackId)).toEqual(['a1', 'a2', 'a3'])
+    expect(entries[0].albumId).toBeNull()
+  })
+})
+
+describe('groupEntriesByAlbum', () => {
+  const entries = [
+    { trackId: 't1', albumId: 'lp', albumTitle: 'LP', artistId: 'a', artistName: 'A' },
+    { trackId: 't2', albumId: 'lp', albumTitle: 'LP', artistId: 'a', artistName: 'A' },
+    { trackId: 't3', albumId: 'ep', albumTitle: 'EP', artistId: 'a', artistName: 'A' },
+  ]
+
+  it('groups by album, preserving order of first appearance', () => {
+    const groups = groupEntriesByAlbum(entries)
+    expect(groups.map((g) => g.albumId)).toEqual(['lp', 'ep'])
+    expect(groups[0].entries).toHaveLength(2)
+  })
+
+  it('keeps entries without an album in their own group', () => {
+    const groups = groupEntriesByAlbum([{ trackId: 'x', albumId: null, artistId: 'a', artistName: 'A' }])
+    expect(groups).toHaveLength(1)
+    expect(groups[0].albumId).toBeNull()
+  })
+
+  it('does not merge same-titled albums from different artists', () => {
+    const groups = groupEntriesByAlbum([
+      { trackId: 'x', albumId: 'a_singles', albumTitle: 'Синглы', artistId: 'a', artistName: 'A' },
+      { trackId: 'y', albumId: 'b_singles', albumTitle: 'Синглы', artistId: 'b', artistName: 'B' },
+    ])
+    expect(groups).toHaveLength(2)
   })
 })
 

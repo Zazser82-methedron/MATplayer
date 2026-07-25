@@ -12,7 +12,7 @@ import { useSwipeGestures } from './hooks/useSwipeGestures.js'
 import { useReducedMotion } from './hooks/useReducedMotion.js'
 import { computePortraitCameraAdjustment } from './three/portraitAdaptation.js'
 import { usePlayerStore } from './store/usePlayerStore.js'
-import { ARTISTS, TRACKS_BY_ID, resolveLyrics } from './data/index.js'
+import { ARTISTS, ALBUMS, ALBUM_BY_TRACK_ID, TRACKS_BY_ID, resolveLyrics } from './data/index.js'
 import { buildLibraryEntries } from './lib/library/buildLibrary.js'
 import { pickReadableTextColor } from './lib/color/contrast.js'
 import { uiVolumeToGain, clampVolume } from './lib/player/volume.js'
@@ -113,7 +113,7 @@ export default function App() {
   useAudioAnalyser(audioRef)
   useAudioPlaybackSync(audioRef)
 
-  const libraryEntries = useMemo(() => buildLibraryEntries(ARTISTS, TRACKS_BY_ID), [])
+  const libraryEntries = useMemo(() => buildLibraryEntries(ARTISTS, TRACKS_BY_ID, ALBUMS), [])
 
   // Стартовое состояние: из deep-link, если он валиден, иначе дефолт.
   // Тайм-код применяется отдельно, в обработчике loadedmetadata — до
@@ -339,21 +339,30 @@ export default function App() {
       )}
       <PlayerControls
         artistName={activeArtist.name}
+        albumTitle={ALBUM_BY_TRACK_ID[activeTrack.track_id]?.title ?? null}
         trackTitle={activeTrack.title ?? ''}
         isPlaying={isPlaying}
+        isFavorite={favorites.includes(activeTrack.track_id)}
         onTogglePlay={() => {
           const audioEl = audioRef.current
           if (!audioEl) return
           if (audioEl.paused) audioEl.play()
           else audioEl.pause()
         }}
-        onNextArtist={() => switchArtist(1)}
+        onToggleFavorite={() => usePlayerStore.getState().toggleFavorite(activeTrack.track_id)}
         onPrevTrack={() => switchTrack(-1)}
         onNextTrack={() => switchTrack(1)}
-        uiVolume={uiVolume}
-        isMuted={isMuted}
-        onVolumeChange={setUiVolume}
-        onToggleMute={() => setIsMuted((muted) => !muted)}
+        onNextArtist={() => switchArtist(1)}
+        onOpenLibrary={() => setIsLibraryOpen(true)}
+        onOpenQueue={() => setIsQueueOpen(true)}
+        onShare={() => {
+          const search = buildDeepLinkSearch(
+            activeArtist.artist_id,
+            activeTrack.track_id,
+            audioRef.current?.currentTime ?? 0,
+          )
+          navigator.clipboard?.writeText(`${window.location.origin}${window.location.pathname}${search}`)
+        }}
         repeatMode={repeatMode}
         onCycleRepeat={() => usePlayerStore.getState().setRepeatMode(nextRepeatMode(repeatMode))}
         isShuffled={isShuffled}
@@ -367,18 +376,10 @@ export default function App() {
           const currentIndex = trackIds.indexOf(activeTrack.track_id)
           store.setShuffle(true, buildShuffledOrder(trackIds.length, Math.random, currentIndex))
         }}
-        isQueueOpen={isQueueOpen}
-        onToggleQueue={() => setIsQueueOpen((open) => !open)}
-        onShare={() => {
-          const search = buildDeepLinkSearch(
-            activeArtist.artist_id,
-            activeTrack.track_id,
-            audioRef.current?.currentTime ?? 0,
-          )
-          navigator.clipboard?.writeText(`${window.location.origin}${window.location.pathname}${search}`)
-        }}
-        isLibraryOpen={isLibraryOpen}
-        onToggleLibrary={() => setIsLibraryOpen((open) => !open)}
+        uiVolume={uiVolume}
+        isMuted={isMuted}
+        onVolumeChange={setUiVolume}
+        onToggleMute={() => setIsMuted((muted) => !muted)}
       />
       <ArtistCard
         artist={activeArtist}

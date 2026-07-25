@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { searchLibraryEntries, formatMood } from '../lib/library/buildLibrary.js'
+import { searchLibraryEntries, formatMood, groupEntriesByAlbum } from '../lib/library/buildLibrary.js'
 
 export function Library({
   entries,
@@ -25,6 +25,7 @@ export function Library({
   if (!isOpen) return null
 
   const results = searchLibraryEntries(entries, query)
+  const groups = groupEntriesByAlbum(results)
 
   return (
     <div className="library-panel" role="dialog" aria-label="Library">
@@ -32,7 +33,7 @@ export function Library({
         <input
           type="search"
           className="library-panel__search"
-          placeholder="Search artists or tracks…"
+          placeholder="Поиск трека, альбома или артиста…"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           aria-label="Search library"
@@ -44,32 +45,43 @@ export function Library({
       </div>
       <ul className="library-panel__list">
         {results.length === 0 && <li className="library-panel__empty">No tracks found</li>}
-        {results.map((entry) => {
-          const isActive = entry.artistId === activeArtistId && entry.trackId === activeTrackId
-          return (
-            <li key={entry.trackId} className="library-panel__item">
-              <button
-                type="button"
-                className="library-panel__row"
-                aria-current={isActive ? 'true' : undefined}
-                onClick={() => onSelectTrack(entry.artistId, entry.trackId)}
-              >
-                <span className="library-panel__title">{entry.title}</span>
-                <span className="library-panel__artist">{entry.artistName}</span>
-                <span className="library-panel__mood">{formatMood(entry.mood)}</span>
-              </button>
-              <button
-                type="button"
-                className="library-panel__fav"
-                aria-pressed={favorites.includes(entry.trackId)}
-                aria-label={`Favorite ${entry.title}`}
-                onClick={() => onToggleFavorite?.(entry.trackId)}
-              >
-                {favorites.includes(entry.trackId) ? '★' : '☆'}
-              </button>
-            </li>
-          )
-        })}
+        {groups.map((group) => (
+          <li key={group.albumId ?? group.artistName}>
+            {group.albumTitle && (
+              <div className="library-panel__album">
+                {group.artistName} · {group.albumTitle}
+              </div>
+            )}
+            <ul className="library-panel__list library-panel__list--nested">
+              {group.entries.map((entry) => {
+                const isActive = entry.artistId === activeArtistId && entry.trackId === activeTrackId
+                return (
+                  <li key={entry.trackId} className="library-panel__item">
+                    <button
+                      type="button"
+                      className="library-panel__row"
+                      aria-current={isActive ? 'true' : undefined}
+                      onClick={() => onSelectTrack(entry.artistId, entry.trackId)}
+                    >
+                      <span className="library-panel__title">{entry.title}</span>
+                      <span className="library-panel__artist">{entry.artistName}</span>
+                      <span className="library-panel__mood">{formatMood(entry.mood)}</span>
+                    </button>
+                    <button
+                      type="button"
+                      className="library-panel__fav"
+                      aria-pressed={favorites.includes(entry.trackId)}
+                      aria-label={`Favorite ${entry.title}`}
+                      onClick={() => onToggleFavorite?.(entry.trackId)}
+                    >
+                      {favorites.includes(entry.trackId) ? '★' : '☆'}
+                    </button>
+                  </li>
+                )
+              })}
+            </ul>
+          </li>
+        ))}
       </ul>
     </div>
   )

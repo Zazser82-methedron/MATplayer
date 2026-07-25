@@ -1,0 +1,13 @@
+{
+  "album_id": "placeholder_b_singles",
+  "artist_id": "placeholder_b",
+  "title": "Синглы",
+  "kind": "singles",
+  "cover_palette": {
+    "background": "#0f1420",
+    "primary": "#a8c8ec"
+  },
+  "track_ids": [
+    "placeholder_b_01"
+  ]
+}
