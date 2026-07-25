@@ -6,6 +6,7 @@ import { UXModeManager } from './ui/UXModeManager.jsx'
 import { PlayerControls } from './ui/PlayerControls.jsx'
 import { LyricsOverlay } from './ui/LyricsOverlay.jsx'
 import { useAudioAnalyser } from './hooks/useAudioAnalyser.js'
+import { useAudioPlaybackSync } from './hooks/useAudioPlaybackSync.js'
 import { useSwipeGestures } from './hooks/useSwipeGestures.js'
 import { useReducedMotion } from './hooks/useReducedMotion.js'
 import { computePortraitCameraAdjustment } from './three/portraitAdaptation.js'
@@ -47,9 +48,11 @@ function switchArtist(direction) {
 export default function App() {
   const audioRef = useRef(null)
   const currentArtistId = usePlayerStore((s) => s.currentArtistId)
+  const isPlaying = usePlayerStore((s) => s.isPlaying)
   const reducedMotion = useReducedMotion()
   const [cameraPosition, setCameraPosition] = useState(BASE_CAMERA_POSITION)
   useAudioAnalyser(audioRef)
+  useAudioPlaybackSync(audioRef)
 
   useEffect(() => {
     usePlayerStore.getState().setArtist('cupsize')
@@ -124,7 +127,7 @@ export default function App() {
       <LyricsOverlay lines={activeLyrics} reducedMotion={reducedMotion} />
       <PlayerControls
         artistName={activeArtistName}
-        isPlaying={!(audioRef.current?.paused ?? true)}
+        isPlaying={isPlaying}
         onTogglePlay={() => {
           const audioEl = audioRef.current
           if (!audioEl) return
