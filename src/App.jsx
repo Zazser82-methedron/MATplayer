@@ -15,6 +15,7 @@ import { computePortraitCameraAdjustment } from './three/portraitAdaptation.js'
 import { usePlayerStore } from './store/usePlayerStore.js'
 import { ARTISTS, TRACKS_BY_ID, resolveLyrics } from './data/index.js'
 import { buildLibraryEntries } from './lib/library/buildLibrary.js'
+import { pickReadableTextColor } from './lib/color/contrast.js'
 
 const DEFAULT_ARTIST_ID = 'cupsize'
 const DEFAULT_TRACK_ID = 'cupsize_zppp'
@@ -162,7 +163,11 @@ export default function App() {
         <PerformanceManager />
         <Atlas artists={ARTISTS} trackByArtistId={trackByArtistId} />
       </Canvas>
-      <LyricsOverlay lines={activeLyrics} reducedMotion={reducedMotion} />
+      <LyricsOverlay
+        lines={activeLyrics}
+        reducedMotion={reducedMotion}
+        textColor={pickReadableTextColor(activeTrack.color_palette.background)}
+      />
       <PlayerControls
         artistName={activeArtist.name}
         trackTitle={activeTrack.title ?? ''}
