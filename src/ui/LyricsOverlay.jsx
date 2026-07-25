@@ -7,8 +7,10 @@ export function LyricsOverlay({ lines, reducedMotion, textColor = '#ffffff' }) {
 
   return (
     <>
+      {/* Между строками текста нет — подложку в этот момент тоже не рисуем,
+          иначе пустая матовая плашка висит на экране сама по себе. */}
       <div
-        className="lyrics-overlay"
+        className={currentText ? 'lyrics-overlay lyrics-overlay--visible' : 'lyrics-overlay'}
         style={{ transition: reducedMotion ? 'none' : 'opacity 0.4s ease', color: textColor }}
       >
         {currentText}

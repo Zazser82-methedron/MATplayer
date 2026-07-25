@@ -26,6 +26,10 @@ function ArtistIsland({ artist, isActive, track }) {
     )
   }
 
+  // Ниже раннего return, потому что у неактивных островов track не передаётся.
+  // Хуки обязаны идти до него, обычные вычисления — нет.
+  const isMelancholic = track.mood.startsWith('melancholic')
+
   return (
     <group position={[x, y, z]} name={`island-active-${artist.artist_id}`}>
       <fogExp2 attach="fog" args={[track.color_palette.background, 0.08]} />
@@ -39,14 +43,18 @@ function ArtistIsland({ artist, isActive, track }) {
       <ParticleField palette={track.color_palette} noiseType={track.shader_presets.noise_type} />
       {/* Источник для God Rays: лучи расходятся от этого меша, поэтому он стоит
           позади аватара — так они пробиваются из-за силуэта. Он должен быть
-          настоящим отрендеренным мешем, невидимый меш лучей не даёт. */}
-      <mesh ref={setSunMesh} position={[0, 1.2, -3]} name="godrays-sun">
-        <sphereGeometry args={[0.7, 24, 24]} />
-        <meshBasicMaterial color={track.color_palette.secondary} />
-      </mesh>
+          настоящим отрендеренным мешем, невидимый меш лучей не даёт — но
+          рендерить его имеет смысл только когда лучи реально включены,
+          иначе он торчит из-за головы аватара ярким шаром. */}
+      {isMelancholic && (
+        <mesh ref={setSunMesh} position={[0, 1.6, -3.5]} name="godrays-sun">
+          <sphereGeometry args={[0.5, 24, 24]} />
+          <meshBasicMaterial color={track.color_palette.secondary} />
+        </mesh>
+      )}
       <ToonPostFX
         bloomIntensity={track.shader_presets.bloom_intensity}
-        moodIsMelancholic={track.mood.startsWith('melancholic')}
+        moodIsMelancholic={isMelancholic}
         godRaysSource={sunMesh}
         bloomEnabled={isBloomEnabledAtLevel(degradationLevel)}
         postFxEnabled={isPostFxEnabledAtLevel(degradationLevel)}

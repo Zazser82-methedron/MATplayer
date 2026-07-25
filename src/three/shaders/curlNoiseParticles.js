@@ -98,21 +98,27 @@ ${CURL_NOISE_GLSL}
 
 // Три режима потока частиц под настроение трека (shader_presets.noise_type).
 // Ветвление идёт по uniform — одинаково для всех вершин, дивергенции нет.
+// Единая точка возврата с явной инициализацией: несколько return'ов внутри
+// ветвлений заставляют HLSL-транслятор ANGLE ругаться на потенциально
+// неинициализированную переменную, а на части драйверов это может дать
+// неопределённое поведение.
 vec3 flowField(vec3 p, float t) {
+  vec3 result = vec3(0.0);
   if (uNoiseType < 0.5) {
     // simplex_curly — органические вихри, базовый режим
-    return curlNoise(p * 0.5);
-  }
-  if (uNoiseType < 1.5) {
+    result = curlNoise(p * 0.5);
+  } else if (uNoiseType < 1.5) {
     // laminar — выраженный направленный дрейф вверх с лёгким возмущением
     vec3 drift = vec3(0.12, 1.0, 0.12);
-    return normalize(drift + curlNoise(p * 0.22) * 0.25);
+    result = normalize(drift + curlNoise(p * 0.22) * 0.25);
+  } else {
+    // turbulent_glitch — дискретизация времени даёт скачкообразные разрывы,
+    // domain warping — рваную, «сломанную» структуру потока
+    float qt = floor(t * 12.0) / 12.0;
+    vec3 warp = vec3(snoise(p * 1.7 + qt), snoise(p * 1.9 - qt), snoise(p * 2.1 + qt));
+    result = curlNoise(p * 0.8 + warp * 0.6);
   }
-  // turbulent_glitch — дискретизация времени даёт скачкообразные разрывы,
-  // domain warping — рваную, «сломанную» структуру потока
-  float qt = floor(t * 12.0) / 12.0;
-  vec3 warp = vec3(snoise(p * 1.7 + qt), snoise(p * 1.9 - qt), snoise(p * 2.1 + qt));
-  return curlNoise(p * 0.8 + warp * 0.6);
+  return result;
 }
 
 void main() {
