@@ -36,6 +36,17 @@ describe('useAudioPlaybackSync', () => {
     expect(usePlayerStore.getState().isPlaying).toBe(false)
   })
 
+  it('sets isPlaying false when playback reaches the end of the track', () => {
+    // Спецификация HTML: конец ресурса выставляет paused = true, но события
+    // 'pause' не поднимает. Без подписки на 'ended' кнопка так и показывала
+    // бы «Pause» при тишине.
+    usePlayerStore.setState({ isPlaying: true })
+    const audioEl = createFakeAudioElement()
+    renderHook(() => useAudioPlaybackSync({ current: audioEl }))
+    audioEl.dispatch('ended')
+    expect(usePlayerStore.getState().isPlaying).toBe(false)
+  })
+
   it('does nothing and does not throw when the ref has no element', () => {
     expect(() => renderHook(() => useAudioPlaybackSync({ current: null }))).not.toThrow()
   })

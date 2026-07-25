@@ -39,10 +39,15 @@ function switchArtist(direction) {
   usePlayerStore.getState().setTrack(nextArtist.track_ids[0])
 }
 
-function switchTrack(direction) {
+// Возвращает id трека, на который нужно перейти, либо null, если переходить
+// некуда. Возврат того же id, что и текущий, — валидный ответ (repeat: one
+// либо repeat: all у артиста с единственным треком); вызывающий код обязан
+// такой случай обработать перемоткой, а не setTrack.
+function resolveNextTrackId(direction, { ignoreRepeatOne = false } = {}) {
   const store = usePlayerStore.getState()
   const artist = findArtist(store.currentArtistId)
   const ids = artist.track_ids
+  if (ids.length === 0) return null
   // При включённом shuffle порядок обхода берётся из перемешанной
   // последовательности, но сам список треков артиста не трогается —
   // выключение shuffle возвращает исходный порядок альбома.
@@ -50,10 +55,24 @@ function switchTrack(direction) {
     store.isShuffled && store.shuffledOrder.length === ids.length
       ? store.shuffledOrder
       : ids.map((_, i) => i)
-  const currentPosition = order.indexOf(ids.indexOf(store.currentTrackId))
-  const nextPosition = computeNextIndex(currentPosition, order.length, store.repeatMode, direction)
-  if (nextPosition === null) return
-  store.setTrack(ids[order[nextPosition]])
+  const currentIndex = ids.indexOf(store.currentTrackId)
+  // Текущий трек не принадлежит этому артисту (битая ссылка, рассинхрон) —
+  // начинаем обход с начала, а не скармливаем -1 в арифметику индексов.
+  if (currentIndex === -1) return ids[order[0]]
+  const repeatMode = ignoreRepeatOne && store.repeatMode === 'one' ? 'all' : store.repeatMode
+  const nextPosition = computeNextIndex(order.indexOf(currentIndex), order.length, repeatMode, direction)
+  if (nextPosition === null) return null
+  return ids[order[nextPosition]]
+}
+
+function switchTrack(direction) {
+  // Ручное нажатие ⏮/⏭ игнорирует repeat: one. Иначе кнопки становятся
+  // полностью мёртвыми: computeNextIndex вернул бы текущий индекс, setTrack
+  // записал бы тот же id, зависимости эффекта загрузки не изменились бы и
+  // ничего не произошло — без какой-либо обратной связи пользователю.
+  const nextId = resolveNextTrackId(direction, { ignoreRepeatOne: true })
+  if (nextId === null) return
+  usePlayerStore.getState().setTrack(nextId)
 }
 
 function selectTrack(artistId, trackId) {
@@ -88,11 +107,17 @@ export default function App() {
 
   useEffect(() => {
     const { artistId, trackId, startTime } = parseDeepLink(window.location.search)
-    const artistExists = ARTISTS.some((a) => a.artist_id === artistId)
-    const trackExists = Boolean(TRACKS_BY_ID[trackId])
-    usePlayerStore.getState().setArtist(artistExists ? artistId : DEFAULT_ARTIST_ID)
-    usePlayerStore.getState().setTrack(trackExists ? trackId : DEFAULT_TRACK_ID)
-    pendingStartTimeRef.current = trackExists ? startTime : null
+    // Артист и трек проверяются не по отдельности, а как пара: ссылка вида
+    // ?artist=cupsize&track=placeholder_b_01 иначе принималась бы буквально,
+    // и палитра, подсветка в библиотеке и карта Atlas разошлись бы с тем,
+    // что реально звучит. Владельца трека вычисляем сами.
+    const owner = TRACKS_BY_ID[trackId] ? ARTISTS.find((a) => a.track_ids.includes(trackId)) : undefined
+    const resolvedArtistId = owner?.artist_id ?? (ARTISTS.some((a) => a.artist_id === artistId) ? artistId : null)
+    const resolvedTrackId = owner ? trackId : findArtist(resolvedArtistId).track_ids[0]
+
+    usePlayerStore.getState().setArtist(resolvedArtistId ?? DEFAULT_ARTIST_ID)
+    usePlayerStore.getState().setTrack(resolvedTrackId ?? DEFAULT_TRACK_ID)
+    pendingStartTimeRef.current = owner ? startTime : null
   }, [])
 
   useEffect(() => {
@@ -164,7 +189,21 @@ export default function App() {
   useEffect(() => {
     const audioEl = audioRef.current
     if (!audioEl) return undefined
-    const handleEnded = () => switchTrack(1)
+    const handleEnded = () => {
+      const store = usePlayerStore.getState()
+      const nextId = resolveNextTrackId(1)
+      if (nextId === null) return
+      // Следующий трек совпал с текущим (repeat: one либо repeat: all у
+      // артиста с единственным треком). setTrack тут бесполезен — id не
+      // изменится, зависимости эффекта загрузки останутся прежними и
+      // воспроизведение просто оборвётся. Перематываем вручную.
+      if (nextId === store.currentTrackId) {
+        audioEl.currentTime = 0
+        audioEl.play().catch(() => {})
+        return
+      }
+      store.setTrack(nextId)
+    }
     audioEl.addEventListener('ended', handleEnded)
     return () => audioEl.removeEventListener('ended', handleEnded)
   }, [])
@@ -175,11 +214,15 @@ export default function App() {
   // page, so autoplay restrictions won't block the resulting play() call.
   useEffect(() => {
     const audioEl = audioRef.current
-    if (!audioEl) return
+    // На первом рендере трек ещё не выбран (эффект инициализации отработает
+    // следом), а activeTrack подставлен дефолтом. Без этой проверки каждая
+    // загрузка страницы писала бы дефолтный трек в сохраняемую историю и
+    // тянула его mp3, чтобы тут же оборвать закачку.
+    if (!audioEl || !currentTrackId) return
     audioEl.load()
     audioEl.play().catch(() => {})
     usePlayerStore.getState().recordPlay(activeTrack.track_id)
-  }, [activeTrack.audio_src, activeTrack.track_id])
+  }, [currentTrackId, activeTrack.audio_src, activeTrack.track_id])
 
   // Громкость применяется через перцептивную кривую и переживает смену трека:
   // audioEl.load() сбрасывает не всё, а состояние mute живёт только здесь.
@@ -195,9 +238,12 @@ export default function App() {
           without reaching into React/Zustand internals. Not user-facing UI. */}
       <div data-testid="current-artist" data-artist-id={currentArtistId ?? ''} hidden />
       <UXModeManager />
+      {/* src не выставляется, пока трек не выбран — иначе браузер начинает
+          качать дефолтный mp3 ещё до того, как отработает разбор deep-link,
+          и тут же бросает закачку. */}
       <audio
         ref={audioRef}
-        src={`${import.meta.env.BASE_URL}audio/${activeTrack.audio_src}`}
+        src={currentTrackId ? `${import.meta.env.BASE_URL}audio/${activeTrack.audio_src}` : undefined}
         autoPlay
         crossOrigin="anonymous"
       />

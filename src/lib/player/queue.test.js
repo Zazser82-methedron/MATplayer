@@ -43,6 +43,22 @@ describe('computeNextIndex', () => {
   })
 })
 
+describe('repeat semantics that callers depend on', () => {
+  it('returns the SAME index for repeat one — callers must not treat this as a track change', () => {
+    // Ключевой контракт: setTrack с тем же id не перезапустит воспроизведение,
+    // потому что зависимости эффекта загрузки не изменятся. Вызывающий код
+    // обязан отличать «тот же трек» от «следующий трек» и перематывать вручную.
+    expect(computeNextIndex(2, 4, 'one', 1)).toBe(2)
+    expect(computeNextIndex(2, 4, 'one', -1)).toBe(2)
+  })
+
+  it('also returns the same index for repeat all on a single-track queue', () => {
+    // Тот же капкан с другой стороны: у артиста с одним треком repeat: all
+    // тоже возвращает текущий индекс.
+    expect(computeNextIndex(0, 1, 'all', 1)).toBe(0)
+  })
+})
+
 describe('buildShuffledOrder', () => {
   it('is a permutation of all indices', () => {
     const order = buildShuffledOrder(5, () => 0.5)

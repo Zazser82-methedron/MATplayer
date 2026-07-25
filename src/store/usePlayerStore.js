@@ -1,6 +1,32 @@
 import { create } from 'zustand'
-import { persist, createJSONStorage } from 'zustand/middleware'
+import { persist } from 'zustand/middleware'
 import { pushHistoryEntry, toggleFavorite } from '../lib/player/history.js'
+
+// zustand вызывает setItem на КАЖДЫЙ set() — partialize определяет только,
+// ЧТО попадёт в хранилище, но не ЗАПИСЫВАТЬ ли вообще; никакого сравнения
+// внутри middleware нет. В сторе живут audioBands и currentTime, которые
+// обновляются дважды за кадр, поэтому без этой обёртки выходит ~120
+// синхронных записей в localStorage в секунду, все с одинаковым содержимым.
+// Синхронная запись блокирует главный поток и роняет FPS рендера.
+export function createDedupedStorage(backing = localStorage) {
+  let lastWritten = null
+  return {
+    getItem: (name) => {
+      const raw = backing.getItem(name)
+      return raw === null ? null : JSON.parse(raw)
+    },
+    setItem: (name, value) => {
+      const serialized = JSON.stringify(value)
+      if (serialized === lastWritten) return
+      lastWritten = serialized
+      backing.setItem(name, serialized)
+    },
+    removeItem: (name) => {
+      lastWritten = null
+      backing.removeItem(name)
+    },
+  }
+}
 
 export const usePlayerStore = create(
   persist(
@@ -34,11 +60,12 @@ export const usePlayerStore = create(
     }),
     {
       name: 'matplayer-user-state',
-      storage: createJSONStorage(() => localStorage),
+      storage: createDedupedStorage(),
       // Сохраняем только пользовательские предпочтения. Всё, что меняется
       // каждый кадр (audioBands, currentTime) или зависит от железа
-      // (degradationLevel), в localStorage писать нельзя — это убило бы
-      // производительность и восстанавливало бы неверное состояние.
+      // (degradationLevel), сюда попадать не должно. Само по себе это не
+      // спасает от записи на каждый кадр — за это отвечает дедупликация
+      // в createDedupedStorage выше.
       partialize: (state) => ({
         favorites: state.favorites,
         history: state.history,
