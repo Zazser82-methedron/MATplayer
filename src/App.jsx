@@ -15,6 +15,7 @@ import { usePlayerStore } from './store/usePlayerStore.js'
 import { ARTISTS, TRACKS_BY_ID, resolveLyrics } from './data/index.js'
 import { buildLibraryEntries } from './lib/library/buildLibrary.js'
 import { pickReadableTextColor } from './lib/color/contrast.js'
+import { uiVolumeToGain, clampVolume } from './lib/player/volume.js'
 
 const DEFAULT_ARTIST_ID = 'cupsize'
 const DEFAULT_TRACK_ID = 'cupsize_zppp'
@@ -58,6 +59,8 @@ export default function App() {
   const reducedMotion = useReducedMotion()
   const [cameraPosition, setCameraPosition] = useState(BASE_CAMERA_POSITION)
   const [isLibraryOpen, setIsLibraryOpen] = useState(false)
+  const [uiVolume, setUiVolume] = useState(1)
+  const [isMuted, setIsMuted] = useState(false)
   useAudioAnalyser(audioRef)
   useAudioPlaybackSync(audioRef)
 
@@ -94,9 +97,9 @@ export default function App() {
       } else if (event.key === 'ArrowLeft') {
         if (audioEl) audioEl.currentTime = Math.max(0, audioEl.currentTime - SEEK_SECONDS)
       } else if (event.key === 'ArrowUp') {
-        if (audioEl) audioEl.volume = Math.min(1, audioEl.volume + VOLUME_STEP)
+        setUiVolume((v) => clampVolume(v + VOLUME_STEP))
       } else if (event.key === 'ArrowDown') {
-        if (audioEl) audioEl.volume = Math.max(0, audioEl.volume - VOLUME_STEP)
+        setUiVolume((v) => clampVolume(v - VOLUME_STEP))
       }
     }
     window.addEventListener('keydown', handleKeyDown)
@@ -140,6 +143,14 @@ export default function App() {
     audioEl.play().catch(() => {})
   }, [activeTrack.audio_src])
 
+  // Громкость применяется через перцептивную кривую и переживает смену трека:
+  // audioEl.load() сбрасывает не всё, а состояние mute живёт только здесь.
+  useEffect(() => {
+    const audioEl = audioRef.current
+    if (!audioEl) return
+    audioEl.volume = isMuted ? 0 : uiVolumeToGain(uiVolume)
+  }, [uiVolume, isMuted, activeTrack.audio_src])
+
   return (
     <div id="matplayer-root">
       {/* Hidden test hook — lets the Playwright smoke test observe the current artist
@@ -179,6 +190,10 @@ export default function App() {
         onNextArtist={() => switchArtist(1)}
         onPrevTrack={() => switchTrack(-1)}
         onNextTrack={() => switchTrack(1)}
+        uiVolume={uiVolume}
+        isMuted={isMuted}
+        onVolumeChange={setUiVolume}
+        onToggleMute={() => setIsMuted((muted) => !muted)}
         isLibraryOpen={isLibraryOpen}
         onToggleLibrary={() => setIsLibraryOpen((open) => !open)}
       />

@@ -1,4 +1,5 @@
 import { usePlayerStore } from '../store/usePlayerStore.js'
+import { VolumeControl } from './VolumeControl.jsx'
 
 export function PlayerControls({
   artistName,
@@ -10,6 +11,10 @@ export function PlayerControls({
   onNextTrack,
   isLibraryOpen,
   onToggleLibrary,
+  uiVolume,
+  isMuted,
+  onVolumeChange,
+  onToggleMute,
 }) {
   const uxMode = usePlayerStore((s) => s.uxMode)
 
@@ -33,6 +38,12 @@ export function PlayerControls({
       <button type="button" onClick={onNextArtist}>
         Next artist
       </button>
+      <VolumeControl
+        uiVolume={uiVolume}
+        isMuted={isMuted}
+        onChange={onVolumeChange}
+        onToggleMute={onToggleMute}
+      />
       <button type="button" onClick={onToggleLibrary} aria-pressed={isLibraryOpen}>
         Library
       </button>

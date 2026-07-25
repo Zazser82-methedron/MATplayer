@@ -16,6 +16,10 @@ function renderControls(overrides = {}) {
       onNextTrack={noop}
       isLibraryOpen={false}
       onToggleLibrary={noop}
+      uiVolume={1}
+      isMuted={false}
+      onVolumeChange={noop}
+      onToggleMute={noop}
       {...overrides}
     />,
   )

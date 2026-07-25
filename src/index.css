@@ -138,6 +138,18 @@ body {
   border-color: rgba(255, 255, 255, 0.5);
 }
 
+.volume-control {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.volume-control__slider {
+  width: 84px;
+  accent-color: #f2ede6;
+  cursor: pointer;
+}
+
 .library-panel {
   position: absolute;
   z-index: 20;
