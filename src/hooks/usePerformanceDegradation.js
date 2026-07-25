@@ -1,6 +1,11 @@
 import { useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
-import { computeDegradationLevel, pixelRatioForFps, particleCountForLevel } from './performanceDegradation.js'
+import {
+  computeDegradationLevel,
+  pixelRatioForFps,
+  particleCountForLevel,
+  shouldApplyLevelChange,
+} from './performanceDegradation.js'
 import { usePlayerStore } from '../store/usePlayerStore.js'
 
 const FPS_SAMPLE_WINDOW = 30
@@ -11,6 +16,7 @@ export function usePerformanceDegradation() {
   const pixelRatioRef = useRef(gl.getPixelRatio())
   const maxPixelRatioRef = useRef(gl.getPixelRatio())
   const frameTimesRef = useRef([])
+  const framesSinceLevelChangeRef = useRef(0)
 
   useFrame((_, delta) => {
     const fps = delta > 0 ? 1 / delta : 60
@@ -18,9 +24,11 @@ export function usePerformanceDegradation() {
     if (frameTimesRef.current.length > FPS_SAMPLE_WINDOW) frameTimesRef.current.shift()
     const avgFps = frameTimesRef.current.reduce((a, b) => a + b, 0) / frameTimesRef.current.length
 
+    framesSinceLevelChangeRef.current += 1
     const nextLevelIndex = computeDegradationLevel(avgFps, levelIndexRef.current)
-    if (nextLevelIndex !== levelIndexRef.current) {
+    if (nextLevelIndex !== levelIndexRef.current && shouldApplyLevelChange(framesSinceLevelChangeRef.current)) {
       levelIndexRef.current = nextLevelIndex
+      framesSinceLevelChangeRef.current = 0
       usePlayerStore.getState().setParticleVisibleCount(particleCountForLevel(nextLevelIndex))
       usePlayerStore.getState().setDegradationLevel(nextLevelIndex)
     }

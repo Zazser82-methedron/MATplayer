@@ -31,9 +31,19 @@ describe('pickReadableTextColor', () => {
     expect(pickReadableTextColor('#f2ede6')).toBe('#0a0a0a')
   })
 
-  it('always returns a colour meeting WCAG AA (4.5:1) against the background', () => {
-    for (const bg of ['#0d0101', '#f2ede6', '#808080', '#00e5ff', '#0f1420']) {
+  it('meets WCAG AA on every palette background actually shipped', () => {
+    for (const bg of ['#0d0101', '#1a0f14', '#050505', '#0f1420']) {
       expect(contrastRatio(pickReadableTextColor(bg), bg)).toBeGreaterThanOrEqual(4.5)
     }
+  })
+
+  it('always picks the better of the two options, even where neither reaches AA', () => {
+    // Средне-серые фоны недостижимы для AA обоими вариантами: на #777777
+    // белый даёт 4.478, тёмный — 4.421. Функция обязана выбрать больший из
+    // двух, но обещать проход порога здесь нельзя — и она этого не обещает.
+    const picked = pickReadableTextColor('#777777')
+    const rejected = picked === '#ffffff' ? '#0a0a0a' : '#ffffff'
+    expect(contrastRatio(picked, '#777777')).toBeGreaterThan(contrastRatio(rejected, '#777777'))
+    expect(contrastRatio(picked, '#777777')).toBeLessThan(4.5)
   })
 })

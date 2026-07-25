@@ -1,4 +1,4 @@
-import { useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { vertexShader, fragmentShader } from './shaders/curlNoiseParticles.js'
@@ -43,8 +43,22 @@ export function ParticleField({ count = 2000, palette, noiseType }) {
       uStartColor: { value: new THREE.Color(palette.primary) },
       uEndColor: { value: new THREE.Color(palette.secondary) },
     }),
-    [palette, noiseType],
+    // Пустые зависимости намеренно. three.js захватывает объект uniforms по
+    // ссылке при первой компиляции программы и больше никогда его не
+    // перечитывает: подмена объекта не доходит до рендерера, зато useFrame
+    // начинает писать в объект, который никто не читает — частицы намертво
+    // замирают. Значения обновляются точечно в эффекте ниже.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
   )
+
+  useEffect(() => {
+    const material = materialRef.current
+    if (!material) return
+    material.uniforms.uNoiseType.value = noiseTypeToFloat(noiseType)
+    material.uniforms.uStartColor.value.set(palette.primary)
+    material.uniforms.uEndColor.value.set(palette.secondary)
+  }, [noiseType, palette])
 
   useFrame(() => {
     const { bass, mid, treble } = usePlayerStore.getState().audioBands
