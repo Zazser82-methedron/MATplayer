@@ -29,6 +29,15 @@ export const StructureSegmentSchema = z
 // общего микса, как сейчас. Смысл stem_urls — развести источники по разным
 // визуальным элементам (вокал на мимику, барабаны на деформацию частиц).
 export const AudioAnalysisSchema = z.object({
+  // Предвычисляется при сборке (scripts/import-cupsize-tracks.mjs). Пока
+  // этих полей нет, клиент вынужден скачивать трек ВТОРОЙ раз целиком и
+  // декодировать его только ради формы волны — именно так делать не надо,
+  // и ни один крупный сервис так не делает.
+  waveform_peaks: z.array(z.number().min(0).max(1)).optional(),
+  bpm: z.number().positive().nullable().optional(),
+  beat_offset: z.number().min(0).optional(),
+  duration: z.number().positive().optional(),
+
   structure_segments: z.array(StructureSegmentSchema).optional(),
   stem_urls: z.record(z.string(), z.string().min(1)).optional(),
   spectral_centroid_peaks: z.array(z.number()).optional(),

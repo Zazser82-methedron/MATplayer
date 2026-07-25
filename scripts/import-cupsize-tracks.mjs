@@ -10,6 +10,35 @@ import { execFileSync } from 'node:child_process'
 import { writeFileSync, existsSync, mkdirSync, readFileSync, statSync } from 'node:fs'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { computeWaveformPeaks } from '../src/lib/audio/waveform.js'
+import { estimateTempoFromSamples } from '../src/lib/audio/tempoEstimate.js'
+
+const WAVEFORM_BUCKETS = 160
+// Для анализа хватает моно на низкой частоте: форма волны рисуется 160
+// столбиками, а сетка долей — с точностью до сотой секунды. Так распаковка
+// 26 треков занимает секунды вместо минут.
+const ANALYSIS_SAMPLE_RATE = 8000
+
+// Извлекаем сырой PCM через ffmpeg: в Node нет Web Audio, а тащить ради
+// одного скрипта эмуляцию AudioContext не хочется.
+function decodePcmMono(ffmpegPath, filePath) {
+  const raw = execFileSync(
+    ffmpegPath,
+    ['-v', 'error', '-i', filePath, '-f', 'f32le', '-acodec', 'pcm_f32le', '-ac', '1', '-ar', String(ANALYSIS_SAMPLE_RATE), 'pipe:1'],
+    { maxBuffer: 1024 * 1024 * 512 },
+  )
+  return new Float32Array(raw.buffer, raw.byteOffset, Math.floor(raw.byteLength / 4))
+}
+
+function readDurationSeconds(ffmpegPath, filePath) {
+  const probe = ffmpegPath.replace(/ffmpeg(\.exe)?$/i, (m) => (m.toLowerCase().endsWith('.exe') ? 'ffprobe.exe' : 'ffprobe'))
+  const out = execFileSync(
+    probe,
+    ['-v', 'error', '-show_entries', 'format=duration', '-of', 'default=noprint_wrappers=1:nokey=1', filePath],
+    { encoding: 'utf8' },
+  )
+  return Math.round(Number(out.trim()) * 100) / 100
+}
 
 const projectRoot = join(dirname(fileURLToPath(import.meta.url)), '..')
 const SOURCE_AUDIO_DIR = 'C:/Users/exxck/Projects/games/cupsize-v2-story/audio'
@@ -178,19 +207,32 @@ for (const { n, title, mood } of TRACKS) {
   const trackId = `cupsize_t${padded}`
   trackIds.push(trackId)
 
+  // Анализ считается ЗДЕСЬ, а не в браузере. Иначе каждый слушатель качает
+  // трек вторым разом целиком и декодирует ~50 МБ PCM только ради картинки.
+  const samples = decodePcmMono(FFMPEG, targetAudio)
+  const waveformPeaks = computeWaveformPeaks(samples, WAVEFORM_BUCKETS).map((p) => Math.round(p * 1000) / 1000)
+  const { bpm, offset } = estimateTempoFromSamples(samples, ANALYSIS_SAMPLE_RATE)
+  const duration = readDurationSeconds(FFMPEG, targetAudio)
+
   const profile = {
     track_id: trackId,
     title,
-    tempo_bpm: preset.tempo_bpm,
+    tempo_bpm: bpm ?? preset.tempo_bpm,
     energy: preset.energy,
     mood: preset.mood,
     color_palette: preset.color_palette,
     shader_presets: preset.shader_presets,
     lyrics_ref: `cupsize/track-${padded}.json`,
     audio_src: `cupsize/${padded}.mp3`,
+    audio_analysis: {
+      waveform_peaks: waveformPeaks,
+      bpm: bpm ?? null,
+      beat_offset: offset,
+      duration,
+    },
   }
   writeFileSync(join(TARGET_PROFILE_DIR, `${trackId}.json`), `${JSON.stringify(profile, null, 2)}\n`, 'utf8')
-  process.stdout.write(`  ${padded} ${title}\n`)
+  process.stdout.write(`  ${padded} ${title.padEnd(24)} ${bpm ?? '?'} BPM, ${duration}s\n`)
 }
 
 const artistPath = join(projectRoot, 'src/data/artists/cupsize.json')

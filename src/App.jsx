@@ -248,21 +248,29 @@ export default function App() {
   // переход на AudioBufferSourceNode стоил бы прогрессивного воспроизведения.
   // Анализ необязателен: при сбое остаётся tempo_bpm из профиля трека.
   const audioSrc = currentTrackId ? `${import.meta.env.BASE_URL}audio/${activeTrack.audio_src}` : null
+
+  // Форма волны и сетка долей приходят готовыми из профиля трека: их считает
+  // скрипт импорта при сборке. Раньше это делалось в браузере, из-за чего
+  // каждый слушатель качал трек ВТОРОЙ раз целиком и декодировал десятки
+  // мегабайт PCM только ради картинки. Резервный путь через analyzeTrack
+  // остаётся для треков без предвычисленного анализа (например, будущих
+  // пользовательских загрузок, пока их не обработал бэкенд).
+  const precomputed = activeTrack.audio_analysis
   useEffect(() => {
-    usePlayerStore.getState().setDetectedBpm(activeTrack.tempo_bpm ?? null)
-    usePlayerStore.getState().setBeatOffset(0)
-    setPeaks([])
-    // Длительность тоже сбрасываем: без этого между сменой трека и его
-    // loadedmetadata шкала показывала бы длину предыдущего трека рядом с
-    // позицией нового.
-    setDuration(0)
-    if (!audioSrc) return undefined
+    usePlayerStore.getState().setDetectedBpm(precomputed?.bpm ?? activeTrack.tempo_bpm ?? null)
+    usePlayerStore.getState().setBeatOffset(precomputed?.beat_offset ?? 0)
+    setPeaks(precomputed?.waveform_peaks ?? [])
+    // Длительность из анализа показывает шкале правильную длину сразу, не
+    // дожидаясь loadedmetadata; событие всё равно её потом уточнит.
+    setDuration(precomputed?.duration ?? 0)
+
+    if (precomputed?.waveform_peaks || !audioSrc) return undefined
 
     const context = audioRef.current?.__matplayerContext
     if (!context) return undefined
 
     // Прокликивание десяти треков подряд без отмены запускало бы десять
-    // параллельных загрузок по ~6 МБ и десять декодирований.
+    // параллельных загрузок и декодирований.
     const controller = new AbortController()
     analyzeTrack(audioSrc, context, WAVEFORM_BUCKETS, { signal: controller.signal })
       .then(({ peaks: trackPeaks, bpm, beatOffset }) => {
@@ -272,12 +280,12 @@ export default function App() {
         usePlayerStore.getState().setBeatOffset(beatOffset)
       })
       .catch(() => {
-        // Профильный tempo_bpm уже выставлен выше — этого достаточно,
-        // визуал просто останется без waveform.
+        // Профильный tempo_bpm уже выставлен выше — визуал просто останется
+        // без формы волны.
       })
 
     return () => controller.abort()
-  }, [audioSrc, activeTrack.tempo_bpm])
+  }, [audioSrc, activeTrack.tempo_bpm, precomputed])
 
   useEffect(() => {
     const audioEl = audioRef.current
