@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Canvas } from '@react-three/fiber'
+import * as THREE from 'three'
 import { Atlas } from './three/Atlas.jsx'
 import { PerformanceManager } from './hooks/usePerformanceDegradation.js'
 import { UXModeManager } from './ui/UXModeManager.jsx'
@@ -153,6 +154,7 @@ export default function App() {
       />
       <Canvas
         camera={{ position: [cameraPosition.x, cameraPosition.y, cameraPosition.z], fov: 50 }}
+        gl={{ toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.15 }}
         onCreated={() => {
           document.documentElement.dataset.matplayerReady = 'true'
         }}
