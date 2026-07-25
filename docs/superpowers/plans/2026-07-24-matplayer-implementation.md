@@ -1631,13 +1631,13 @@ export function ParticleField({ count = 2000, palette }) {
   )
 
   useFrame(() => {
-    const { bass, mid, high } = usePlayerStore.getState().audioBands
+    const { bass, mid, treble } = usePlayerStore.getState().audioBands
     timeRef.current += computeAudioTimeStep(bass)
     const material = materialRef.current
     if (!material) return
     material.uniforms.uTime.value = timeRef.current
     material.uniforms.uMid.value = mid
-    material.uniforms.uAmplitude.value = computeCurlAmplitude(high)
+    material.uniforms.uAmplitude.value = computeCurlAmplitude(treble)
   })
 
   return (
@@ -3160,13 +3160,13 @@ export function ParticleField({ count = 2000, palette, opacity = 1 }) {
   )
 
   useFrame(() => {
-    const { bass, mid, high } = usePlayerStore.getState().audioBands
+    const { bass, mid, treble } = usePlayerStore.getState().audioBands
     timeRef.current += computeAudioTimeStep(bass)
     const material = materialRef.current
     if (material) {
       material.uniforms.uTime.value = timeRef.current
       material.uniforms.uMid.value = mid
-      material.uniforms.uAmplitude.value = computeCurlAmplitude(high)
+      material.uniforms.uAmplitude.value = computeCurlAmplitude(treble)
       material.uniforms.uOpacity.value = opacity
     }
 
