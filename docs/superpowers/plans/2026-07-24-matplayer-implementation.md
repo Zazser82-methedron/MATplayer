@@ -1310,7 +1310,7 @@ export function computeBlinkScale(elapsedTime) {
 - [ ] **Step 4: Run test, verify it passes**
 
 Run: `npm test -- avatarMotion`
-Expected: PASS (8 tests)
+Expected: PASS (7 tests — 3 under computeBreathScale, 4 under computeBlinkScale)
 
 - [ ] **Step 5: Implement `src/three/AvatarProxy.jsx`**
 
@@ -1452,7 +1452,7 @@ export function computeCurlAmplitude(highLevel) {
 - [ ] **Step 4: Run test, verify it passes**
 
 Run: `npm test -- audioTimeStep`
-Expected: PASS (8 tests)
+Expected: PASS (10 tests — 2 mapLinear, 3 clamp, 3 computeAudioTimeStep, 2 computeCurlAmplitude)
 
 - [ ] **Step 5: Implement `src/three/shaders/curlNoiseParticles.js`**
 
