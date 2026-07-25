@@ -7,6 +7,7 @@ export const usePlayerStore = create((set) => ({
   isPlaying: false,
   uxMode: 'focus', // 'focus' | 'ambient' | 'utility'
   audioBands: { bass: 0, mid: 0, treble: 0, level: 0 },
+  particleVisibleCount: 2000,
 
   setArtist: (artistId) => set({ currentArtistId: artistId }),
   setTrack: (trackId) => set({ currentTrackId: trackId }),
@@ -14,4 +15,5 @@ export const usePlayerStore = create((set) => ({
   setPlaying: (playing) => set({ isPlaying: playing }),
   setUxMode: (mode) => set({ uxMode: mode }),
   setAudioBands: (bands) => set({ audioBands: bands }),
+  setParticleVisibleCount: (count) => set({ particleVisibleCount: count }),
 }))

@@ -8,6 +8,7 @@ const defaults = {
   isPlaying: false,
   uxMode: 'focus',
   audioBands: { bass: 0, mid: 0, treble: 0, level: 0 },
+  particleVisibleCount: 2000,
 }
 
 describe('usePlayerStore', () => {
@@ -34,5 +35,10 @@ describe('usePlayerStore', () => {
   it('setUxMode accepts focus/ambient/utility', () => {
     usePlayerStore.getState().setUxMode('ambient')
     expect(usePlayerStore.getState().uxMode).toBe('ambient')
+  })
+
+  it('setParticleVisibleCount updates particleVisibleCount', () => {
+    usePlayerStore.getState().setParticleVisibleCount(500)
+    expect(usePlayerStore.getState().particleVisibleCount).toBe(500)
   })
 })

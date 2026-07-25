@@ -7,7 +7,9 @@ import { usePlayerStore } from '../store/usePlayerStore.js'
 
 export function ParticleField({ count = 2000, palette }) {
   const materialRef = useRef()
+  const geometryRef = useRef()
   const timeRef = useRef(0)
+  const lastVisibleCountRef = useRef(count)
 
   const [positions, originals, normals] = useMemo(() => {
     const positions = new Float32Array(count * 3)
@@ -48,11 +50,17 @@ export function ParticleField({ count = 2000, palette }) {
     material.uniforms.uTime.value = timeRef.current
     material.uniforms.uMid.value = mid
     material.uniforms.uAmplitude.value = computeCurlAmplitude(treble)
+
+    const targetVisibleCount = Math.min(usePlayerStore.getState().particleVisibleCount, count)
+    if (targetVisibleCount !== lastVisibleCountRef.current && geometryRef.current) {
+      geometryRef.current.setDrawRange(0, targetVisibleCount)
+      lastVisibleCountRef.current = targetVisibleCount
+    }
   })
 
   return (
     <points>
-      <bufferGeometry>
+      <bufferGeometry ref={geometryRef}>
         <bufferAttribute attach="attributes-position" count={count} array={positions} itemSize={3} />
         <bufferAttribute attach="attributes-aOriginal" count={count} array={originals} itemSize={3} />
         <bufferAttribute attach="attributes-aNormal" count={count} array={normals} itemSize={3} />
