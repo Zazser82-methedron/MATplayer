@@ -138,6 +138,80 @@ body {
   border-color: rgba(255, 255, 255, 0.5);
 }
 
+.queue-panel {
+  position: absolute;
+  z-index: 18;
+  right: 20px;
+  bottom: 92px;
+  width: min(88vw, 320px);
+  max-height: 46vh;
+  display: flex;
+  flex-direction: column;
+  background: rgba(10, 10, 10, 0.82);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 16px;
+  color: #f2ede6;
+  overflow: hidden;
+}
+
+.queue-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  font-weight: 600;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.queue-panel__header button {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.queue-panel__list {
+  list-style: none;
+  margin: 0;
+  padding: 6px;
+  overflow-y: auto;
+}
+
+.queue-panel__row {
+  appearance: none;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  text-align: left;
+  border: 1px solid transparent;
+  background: transparent;
+  color: inherit;
+  padding: 8px 10px;
+  border-radius: 10px;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.queue-panel__row:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.queue-panel__row[aria-current='true'] {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.queue-panel__artist {
+  font-size: 0.78rem;
+  color: rgba(242, 237, 230, 0.65);
+}
+
 .volume-control {
   display: flex;
   align-items: center;

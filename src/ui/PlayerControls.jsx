@@ -15,6 +15,12 @@ export function PlayerControls({
   isMuted,
   onVolumeChange,
   onToggleMute,
+  repeatMode,
+  onCycleRepeat,
+  isShuffled,
+  onToggleShuffle,
+  isQueueOpen,
+  onToggleQueue,
 }) {
   const uxMode = usePlayerStore((s) => s.uxMode)
 
@@ -37,6 +43,15 @@ export function PlayerControls({
       </button>
       <button type="button" onClick={onNextArtist}>
         Next artist
+      </button>
+      <button type="button" onClick={onToggleShuffle} aria-pressed={isShuffled} aria-label="Shuffle">
+        🔀
+      </button>
+      <button type="button" onClick={onCycleRepeat} aria-label={`Repeat: ${repeatMode}`}>
+        {repeatMode === 'one' ? '🔂' : '🔁'}
+      </button>
+      <button type="button" onClick={onToggleQueue} aria-pressed={isQueueOpen}>
+        Queue
       </button>
       <VolumeControl
         uiVolume={uiVolume}

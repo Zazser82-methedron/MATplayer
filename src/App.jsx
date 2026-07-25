@@ -16,6 +16,8 @@ import { ARTISTS, TRACKS_BY_ID, resolveLyrics } from './data/index.js'
 import { buildLibraryEntries } from './lib/library/buildLibrary.js'
 import { pickReadableTextColor } from './lib/color/contrast.js'
 import { uiVolumeToGain, clampVolume } from './lib/player/volume.js'
+import { QueuePanel } from './ui/QueuePanel.jsx'
+import { nextRepeatMode, computeNextIndex, buildShuffledOrder } from './lib/player/queue.js'
 
 const DEFAULT_ARTIST_ID = 'cupsize'
 const DEFAULT_TRACK_ID = 'cupsize_zppp'
@@ -40,9 +42,17 @@ function switchTrack(direction) {
   const store = usePlayerStore.getState()
   const artist = findArtist(store.currentArtistId)
   const ids = artist.track_ids
-  const currentIndex = ids.indexOf(store.currentTrackId)
-  const nextIndex = (currentIndex + direction + ids.length) % ids.length
-  store.setTrack(ids[nextIndex])
+  // При включённом shuffle порядок обхода берётся из перемешанной
+  // последовательности, но сам список треков артиста не трогается —
+  // выключение shuffle возвращает исходный порядок альбома.
+  const order =
+    store.isShuffled && store.shuffledOrder.length === ids.length
+      ? store.shuffledOrder
+      : ids.map((_, i) => i)
+  const currentPosition = order.indexOf(ids.indexOf(store.currentTrackId))
+  const nextPosition = computeNextIndex(currentPosition, order.length, store.repeatMode, direction)
+  if (nextPosition === null) return
+  store.setTrack(ids[order[nextPosition]])
 }
 
 function selectTrack(artistId, trackId) {
@@ -61,6 +71,9 @@ export default function App() {
   const [isLibraryOpen, setIsLibraryOpen] = useState(false)
   const [uiVolume, setUiVolume] = useState(1)
   const [isMuted, setIsMuted] = useState(false)
+  const [isQueueOpen, setIsQueueOpen] = useState(false)
+  const repeatMode = usePlayerStore((s) => s.repeatMode)
+  const isShuffled = usePlayerStore((s) => s.isShuffled)
   useAudioAnalyser(audioRef)
   useAudioPlaybackSync(audioRef)
 
@@ -194,8 +207,33 @@ export default function App() {
         isMuted={isMuted}
         onVolumeChange={setUiVolume}
         onToggleMute={() => setIsMuted((muted) => !muted)}
+        repeatMode={repeatMode}
+        onCycleRepeat={() => usePlayerStore.getState().setRepeatMode(nextRepeatMode(repeatMode))}
+        isShuffled={isShuffled}
+        onToggleShuffle={() => {
+          const store = usePlayerStore.getState()
+          if (store.isShuffled) {
+            store.setShuffle(false, [])
+            return
+          }
+          const trackIds = activeArtist.track_ids
+          const currentIndex = trackIds.indexOf(activeTrack.track_id)
+          store.setShuffle(true, buildShuffledOrder(trackIds.length, Math.random, currentIndex))
+        }}
+        isQueueOpen={isQueueOpen}
+        onToggleQueue={() => setIsQueueOpen((open) => !open)}
         isLibraryOpen={isLibraryOpen}
         onToggleLibrary={() => setIsLibraryOpen((open) => !open)}
+      />
+      <QueuePanel
+        entries={libraryEntries.filter((e) => e.artistId === activeArtist.artist_id)}
+        isOpen={isQueueOpen}
+        activeTrackId={activeTrack.track_id}
+        onSelect={(trackId) => {
+          usePlayerStore.getState().setTrack(trackId)
+          setIsQueueOpen(false)
+        }}
+        onClose={() => setIsQueueOpen(false)}
       />
       <Library
         entries={libraryEntries}

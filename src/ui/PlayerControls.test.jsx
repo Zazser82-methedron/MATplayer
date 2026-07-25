@@ -20,6 +20,12 @@ function renderControls(overrides = {}) {
       isMuted={false}
       onVolumeChange={noop}
       onToggleMute={noop}
+      repeatMode="off"
+      onCycleRepeat={noop}
+      isShuffled={false}
+      onToggleShuffle={noop}
+      isQueueOpen={false}
+      onToggleQueue={noop}
       {...overrides}
     />,
   )
@@ -61,6 +67,19 @@ describe('PlayerControls', () => {
     expect(onNextTrack).toHaveBeenCalledTimes(1)
     fireEvent.click(screen.getByRole('button', { name: 'Library' }))
     expect(onToggleLibrary).toHaveBeenCalledTimes(1)
+  })
+
+  it('exposes shuffle and repeat state, and cycles repeat on click', () => {
+    usePlayerStore.setState({ uxMode: 'utility' })
+    const onCycleRepeat = vi.fn()
+    const onToggleShuffle = vi.fn()
+    renderControls({ isShuffled: true, repeatMode: 'one', onCycleRepeat, onToggleShuffle })
+
+    expect(screen.getByRole('button', { name: 'Shuffle' })).toHaveAttribute('aria-pressed', 'true')
+    fireEvent.click(screen.getByRole('button', { name: 'Repeat: one' }))
+    expect(onCycleRepeat).toHaveBeenCalledTimes(1)
+    fireEvent.click(screen.getByRole('button', { name: 'Shuffle' }))
+    expect(onToggleShuffle).toHaveBeenCalledTimes(1)
   })
 
   it('reflects library open state via aria-pressed', () => {

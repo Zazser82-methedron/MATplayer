@@ -9,6 +9,9 @@ export const usePlayerStore = create((set) => ({
   audioBands: { bass: 0, mid: 0, treble: 0, level: 0 },
   particleVisibleCount: 2000,
   degradationLevel: 0,
+  repeatMode: 'off', // 'off' | 'all' | 'one'
+  isShuffled: false,
+  shuffledOrder: [],
 
   setArtist: (artistId) => set({ currentArtistId: artistId }),
   setTrack: (trackId) => set({ currentTrackId: trackId }),
@@ -18,4 +21,6 @@ export const usePlayerStore = create((set) => ({
   setAudioBands: (bands) => set({ audioBands: bands }),
   setParticleVisibleCount: (count) => set({ particleVisibleCount: count }),
   setDegradationLevel: (levelIndex) => set({ degradationLevel: levelIndex }),
+  setRepeatMode: (mode) => set({ repeatMode: mode }),
+  setShuffle: (isShuffled, shuffledOrder) => set({ isShuffled, shuffledOrder }),
 }))
