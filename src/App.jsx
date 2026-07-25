@@ -114,7 +114,13 @@ export default function App() {
           without reaching into React/Zustand internals. Not user-facing UI. */}
       <div data-testid="current-artist" data-artist-id={currentArtistId ?? ''} hidden />
       <UXModeManager />
-      <audio ref={audioRef} src={`/audio/${activeTrack.audio_src}`} autoPlay loop crossOrigin="anonymous" />
+      <audio
+        ref={audioRef}
+        src={`${import.meta.env.BASE_URL}audio/${activeTrack.audio_src}`}
+        autoPlay
+        loop
+        crossOrigin="anonymous"
+      />
       <Canvas
         camera={{ position: [cameraPosition.x, cameraPosition.y, cameraPosition.z], fov: 50 }}
         onCreated={() => {
