@@ -1,0 +1,19 @@
+{
+  "track_id": "cupsize_t25",
+  "title": "Все мои поступки",
+  "tempo_bpm": 145,
+  "energy": 0.95,
+  "mood": "aggressive_chaos",
+  "color_palette": {
+    "background": "#0d0008",
+    "primary": "#ff00aa",
+    "secondary": "#00e5ff"
+  },
+  "shader_presets": {
+    "noise_type": "turbulent_glitch",
+    "outline_thickness": 0.08,
+    "bloom_intensity": 1.8
+  },
+  "lyrics_ref": "cupsize/track-25.json",
+  "audio_src": "cupsize/25.mp3"
+}

@@ -1,0 +1,19 @@
+{
+  "track_id": "cupsize_t20",
+  "title": "Урод",
+  "tempo_bpm": 96,
+  "energy": 0.4,
+  "mood": "melancholic_bitter",
+  "color_palette": {
+    "background": "#120d0d",
+    "primary": "#c47a6a",
+    "secondary": "#f0ddd4"
+  },
+  "shader_presets": {
+    "noise_type": "laminar",
+    "outline_thickness": 0.03,
+    "bloom_intensity": 0.9
+  },
+  "lyrics_ref": "cupsize/track-20.json",
+  "audio_src": "cupsize/20.mp3"
+}

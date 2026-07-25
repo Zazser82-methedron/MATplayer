@@ -7,13 +7,14 @@ describe('data aggregation', () => {
   })
 
   it('indexes every track by its track_id', () => {
-    expect(Object.keys(TRACKS_BY_ID).sort()).toEqual(
-      ['cupsize_t01_knives', 'cupsize_t24_flowers', 'cupsize_zppp', 'placeholder_a_01', 'placeholder_b_01'].sort(),
-    )
+    // 26 треков ЗМП плюс два placeholder-артиста по одному треку.
+    expect(Object.keys(TRACKS_BY_ID)).toHaveLength(28)
+    expect(TRACKS_BY_ID.cupsize_t10.title).toBe('ЗППП')
+    expect(TRACKS_BY_ID.cupsize_t01.title).toBe('Семнадцать ножевых')
   })
 
   it('resolves lyrics for a known lyrics_ref', () => {
-    const lines = resolveLyrics(TRACKS_BY_ID.cupsize_zppp.lyrics_ref)
+    const lines = resolveLyrics(TRACKS_BY_ID.cupsize_t10.lyrics_ref)
     expect(Array.isArray(lines)).toBe(true)
     expect(lines.length).toBeGreaterThan(0)
   })

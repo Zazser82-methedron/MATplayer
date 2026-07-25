@@ -1,0 +1,19 @@
+{
+  "track_id": "cupsize_t02",
+  "title": "Детская травма",
+  "tempo_bpm": 120,
+  "energy": 0.75,
+  "mood": "aggressive_industrial",
+  "color_palette": {
+    "background": "#050408",
+    "primary": "#7a00cc",
+    "secondary": "#00ffcc"
+  },
+  "shader_presets": {
+    "noise_type": "turbulent_glitch",
+    "outline_thickness": 0.07,
+    "bloom_intensity": 1.6
+  },
+  "lyrics_ref": "cupsize/track-02.json",
+  "audio_src": "cupsize/02.mp3"
+}

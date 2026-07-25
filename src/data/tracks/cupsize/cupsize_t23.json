@@ -1,0 +1,19 @@
+{
+  "track_id": "cupsize_t23",
+  "title": "Тетрадь",
+  "tempo_bpm": 84,
+  "energy": 0.25,
+  "mood": "melancholic_pensive",
+  "color_palette": {
+    "background": "#0e1216",
+    "primary": "#8fa3ad",
+    "secondary": "#e8eef2"
+  },
+  "shader_presets": {
+    "noise_type": "laminar",
+    "outline_thickness": 0.02,
+    "bloom_intensity": 0.6
+  },
+  "lyrics_ref": "cupsize/track-23.json",
+  "audio_src": "cupsize/23.mp3"
+}

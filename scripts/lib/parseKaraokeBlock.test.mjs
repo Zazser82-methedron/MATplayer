@@ -28,6 +28,22 @@ describe('parseKaraokeBlock', () => {
     ])
   })
 
+  it('never leaves a timestamp marker inside the text, even without a real newline', () => {
+    // Реальный случай из трека 24: пустой маркер паузы и следующая реплика
+    // разделены литеральным "\n" внутри JS-строки, а не переводом строки.
+    // Раньше жадный (.*) склеивал их, и таймкод уезжал в текст на экран.
+    const block = String.raw`[01:14.42]\n[01:37.93] Пусть этот мир утонет завтра`
+    expect(parseKaraokeBlock(block)).toEqual([
+      { time: 74.42, text: '' },
+      { time: 97.93, text: 'Пусть этот мир утонет завтра' },
+    ])
+  })
+
+  it('collapses literal \\n separators inside a single reply', () => {
+    const block = String.raw`[00:05.00] первая часть\nвторая часть`
+    expect(parseKaraokeBlock(block)).toEqual([{ time: 5, text: 'первая часть вторая часть' }])
+  })
+
   it('drops a trailing empty marker whose timestamp regresses before the previous line', () => {
     const block = '[00:05.00] строка\n[00:20.00] другая строка\n[00:10.00] '
     expect(parseKaraokeBlock(block)).toEqual([

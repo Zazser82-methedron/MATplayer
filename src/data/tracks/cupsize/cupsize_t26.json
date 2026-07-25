@@ -1,0 +1,19 @@
+{
+  "track_id": "cupsize_t26",
+  "title": "Прыгай, дура!",
+  "tempo_bpm": 104,
+  "energy": 0.5,
+  "mood": "melancholic_hopeful",
+  "color_palette": {
+    "background": "#0c1410",
+    "primary": "#7fd4a0",
+    "secondary": "#eaf5ee"
+  },
+  "shader_presets": {
+    "noise_type": "laminar",
+    "outline_thickness": 0.02,
+    "bloom_intensity": 1.1
+  },
+  "lyrics_ref": "cupsize/track-26.json",
+  "audio_src": "cupsize/26.mp3"
+}

@@ -2,7 +2,41 @@
   "artist_id": "cupsize",
   "name": "Cupsize",
   "bio": "Панк-проект из Петербурга. Альбом «ЗМП» — злость, боль и нежность вперемешку, без полутонов.",
-  "default_palette": { "background": "#0d0101", "primary": "#ff0055" },
-  "atlas_position": { "x": 0, "y": 0, "z": 0 },
-  "track_ids": ["cupsize_t01_knives", "cupsize_zppp", "cupsize_t24_flowers"]
+  "default_palette": {
+    "background": "#0d0101",
+    "primary": "#ff0055"
+  },
+  "atlas_position": {
+    "x": 0,
+    "y": 0,
+    "z": 0
+  },
+  "track_ids": [
+    "cupsize_t01",
+    "cupsize_t02",
+    "cupsize_t03",
+    "cupsize_t04",
+    "cupsize_t05",
+    "cupsize_t06",
+    "cupsize_t07",
+    "cupsize_t08",
+    "cupsize_t09",
+    "cupsize_t10",
+    "cupsize_t11",
+    "cupsize_t12",
+    "cupsize_t13",
+    "cupsize_t14",
+    "cupsize_t15",
+    "cupsize_t16",
+    "cupsize_t17",
+    "cupsize_t18",
+    "cupsize_t19",
+    "cupsize_t20",
+    "cupsize_t21",
+    "cupsize_t22",
+    "cupsize_t23",
+    "cupsize_t24",
+    "cupsize_t25",
+    "cupsize_t26"
+  ]
 }

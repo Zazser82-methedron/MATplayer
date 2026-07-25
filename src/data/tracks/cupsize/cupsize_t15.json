@@ -1,0 +1,19 @@
+{
+  "track_id": "cupsize_t15",
+  "title": "Вата",
+  "tempo_bpm": 86,
+  "energy": 0.2,
+  "mood": "melancholic_soft",
+  "color_palette": {
+    "background": "#141014",
+    "primary": "#c8b4d8",
+    "secondary": "#f0eaf5"
+  },
+  "shader_presets": {
+    "noise_type": "laminar",
+    "outline_thickness": 0.015,
+    "bloom_intensity": 0.6
+  },
+  "lyrics_ref": "cupsize/track-15.json",
+  "audio_src": "cupsize/15.mp3"
+}

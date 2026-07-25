@@ -1,0 +1,19 @@
+{
+  "track_id": "cupsize_t21",
+  "title": "Сигареты",
+  "tempo_bpm": 98,
+  "energy": 0.42,
+  "mood": "melancholic_nostalgic",
+  "color_palette": {
+    "background": "#14100a",
+    "primary": "#d4a76a",
+    "secondary": "#f5ead4"
+  },
+  "shader_presets": {
+    "noise_type": "laminar",
+    "outline_thickness": 0.025,
+    "bloom_intensity": 1
+  },
+  "lyrics_ref": "cupsize/track-21.json",
+  "audio_src": "cupsize/21.mp3"
+}

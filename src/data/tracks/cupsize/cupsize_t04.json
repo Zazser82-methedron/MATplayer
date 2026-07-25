@@ -1,0 +1,19 @@
+{
+  "track_id": "cupsize_t04",
+  "title": "Будка",
+  "tempo_bpm": 88,
+  "energy": 0.28,
+  "mood": "melancholic_sad",
+  "color_palette": {
+    "background": "#0f1420",
+    "primary": "#7f9dc4",
+    "secondary": "#d8e4f0"
+  },
+  "shader_presets": {
+    "noise_type": "laminar",
+    "outline_thickness": 0.02,
+    "bloom_intensity": 0.7
+  },
+  "lyrics_ref": "cupsize/track-04.json",
+  "audio_src": "cupsize/04.mp3"
+}

@@ -1,0 +1,19 @@
+{
+  "track_id": "cupsize_t18",
+  "title": "Велосипед",
+  "tempo_bpm": 92,
+  "energy": 0.3,
+  "mood": "melancholic_tender",
+  "color_palette": {
+    "background": "#1a0f14",
+    "primary": "#e8b4c8",
+    "secondary": "#f2ede6"
+  },
+  "shader_presets": {
+    "noise_type": "laminar",
+    "outline_thickness": 0.02,
+    "bloom_intensity": 0.7
+  },
+  "lyrics_ref": "cupsize/track-18.json",
+  "audio_src": "cupsize/18.mp3"
+}

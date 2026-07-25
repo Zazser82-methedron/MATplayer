@@ -1,0 +1,19 @@
+{
+  "track_id": "cupsize_t12",
+  "title": "Верёвка",
+  "tempo_bpm": 80,
+  "energy": 0.24,
+  "mood": "melancholic_dark",
+  "color_palette": {
+    "background": "#08090c",
+    "primary": "#5a6a80",
+    "secondary": "#c0ccd8"
+  },
+  "shader_presets": {
+    "noise_type": "laminar",
+    "outline_thickness": 0.03,
+    "bloom_intensity": 0.8
+  },
+  "lyrics_ref": "cupsize/track-12.json",
+  "audio_src": "cupsize/12.mp3"
+}

@@ -26,7 +26,7 @@ import { ArtistCard } from './ui/ArtistCard.jsx'
 const WAVEFORM_BUCKETS = 160
 
 const DEFAULT_ARTIST_ID = 'cupsize'
-const DEFAULT_TRACK_ID = 'cupsize_zppp'
+const DEFAULT_TRACK_ID = 'cupsize_t10'
 const BASE_CAMERA_POSITION = { x: 0, y: 1, z: 5 }
 const SEEK_SECONDS = 5
 const VOLUME_STEP = 0.1

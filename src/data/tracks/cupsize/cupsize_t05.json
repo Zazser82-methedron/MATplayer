@@ -1,0 +1,19 @@
+{
+  "track_id": "cupsize_t05",
+  "title": "Розовая могила",
+  "tempo_bpm": 76,
+  "energy": 0.22,
+  "mood": "melancholic_grim",
+  "color_palette": {
+    "background": "#100a12",
+    "primary": "#a05a80",
+    "secondary": "#e0c0d0"
+  },
+  "shader_presets": {
+    "noise_type": "laminar",
+    "outline_thickness": 0.03,
+    "bloom_intensity": 0.8
+  },
+  "lyrics_ref": "cupsize/track-05.json",
+  "audio_src": "cupsize/05.mp3"
+}

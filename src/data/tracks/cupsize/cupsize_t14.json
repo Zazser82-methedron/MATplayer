@@ -1,0 +1,19 @@
+{
+  "track_id": "cupsize_t14",
+  "title": "Север",
+  "tempo_bpm": 82,
+  "energy": 0.26,
+  "mood": "melancholic_cold",
+  "color_palette": {
+    "background": "#0a1014",
+    "primary": "#6fb0c4",
+    "secondary": "#dff0f5"
+  },
+  "shader_presets": {
+    "noise_type": "laminar",
+    "outline_thickness": 0.02,
+    "bloom_intensity": 0.9
+  },
+  "lyrics_ref": "cupsize/track-14.json",
+  "audio_src": "cupsize/14.mp3"
+}

@@ -1,0 +1,19 @@
+{
+  "track_id": "cupsize_t17",
+  "title": "По барабану",
+  "tempo_bpm": 132,
+  "energy": 0.88,
+  "mood": "aggressive_grunge",
+  "color_palette": {
+    "background": "#0d0101",
+    "primary": "#ff0055",
+    "secondary": "#39ff14"
+  },
+  "shader_presets": {
+    "noise_type": "turbulent_glitch",
+    "outline_thickness": 0.06,
+    "bloom_intensity": 1.4
+  },
+  "lyrics_ref": "cupsize/track-17.json",
+  "audio_src": "cupsize/17.mp3"
+}

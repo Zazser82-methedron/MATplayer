@@ -1,29 +1,31 @@
-// src/data/lyricsResolution.test.js
 import { describe, it, expect } from 'vitest'
 import { parseLyrics } from '../lib/lyrics/lyricsParser.js'
-
-import cupsizeKnives from './tracks/cupsize/cupsize_t01_knives.json'
-import cupsizeZppp from './tracks/cupsize/cupsize_zppp.json'
-import cupsizeFlowers from './tracks/cupsize/cupsize_t24_flowers.json'
-import placeholderATrack from './tracks/placeholder-a/track-01.json'
-import placeholderBTrack from './tracks/placeholder-b/track-01.json'
-
-const lyricsModules = import.meta.glob('./lyrics/**/*.json', { eager: true })
-
-function resolveLyrics(lyricsRef) {
-  const key = `./lyrics/${lyricsRef}`
-  const mod = lyricsModules[key]
-  if (!mod) throw new Error(`No lyrics file found for lyrics_ref "${lyricsRef}" (looked for ${key})`)
-  return mod.default ?? mod
-}
+import { TRACKS_BY_ID, resolveLyrics } from './index.js'
 
 describe('lyrics_ref resolution', () => {
-  const allTracks = [cupsizeKnives, cupsizeZppp, cupsizeFlowers, placeholderATrack, placeholderBTrack]
-
   it('resolves and parses the lyrics file referenced by every track profile', () => {
-    for (const track of allTracks) {
-      const raw = resolveLyrics(track.lyrics_ref)
-      expect(() => parseLyrics(raw)).not.toThrow()
+    for (const track of Object.values(TRACKS_BY_ID)) {
+      const lines = resolveLyrics(track.lyrics_ref)
+      expect(() => parseLyrics({ lines }), `lyrics for ${track.track_id}`).not.toThrow()
+    }
+  })
+
+  it('never leaves a raw timestamp marker inside displayed lyric text', () => {
+    // Регрессия: маркер следующей реплики попадал в текст предыдущей и
+    // показывался на экране как «[01:37.93] Пусть этот мир утонет...».
+    for (const track of Object.values(TRACKS_BY_ID)) {
+      for (const line of resolveLyrics(track.lyrics_ref)) {
+        expect(line.text, `${track.track_id} @ ${line.time}s`).not.toMatch(/\[\d{2}:\d{2}/)
+      }
+    }
+  })
+
+  it('keeps every lyric line in chronological order', () => {
+    for (const track of Object.values(TRACKS_BY_ID)) {
+      const lines = resolveLyrics(track.lyrics_ref)
+      for (let i = 1; i < lines.length; i++) {
+        expect(lines[i].time, `${track.track_id} line ${i}`).toBeGreaterThanOrEqual(lines[i - 1].time)
+      }
     }
   })
 })
