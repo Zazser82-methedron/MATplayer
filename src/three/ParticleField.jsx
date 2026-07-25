@@ -4,12 +4,14 @@ import * as THREE from 'three'
 import { vertexShader, fragmentShader } from './shaders/curlNoiseParticles.js'
 import { computeAudioTimeStep, computeCurlAmplitude } from './audioTimeStep.js'
 import { usePlayerStore } from '../store/usePlayerStore.js'
+import { useReducedMotion } from '../hooks/useReducedMotion.js'
 
 export function ParticleField({ count = 2000, palette }) {
   const materialRef = useRef()
   const geometryRef = useRef()
   const timeRef = useRef(0)
   const lastVisibleCountRef = useRef(count)
+  const reducedMotion = useReducedMotion()
 
   const [positions, originals, normals] = useMemo(() => {
     const positions = new Float32Array(count * 3)
@@ -48,8 +50,17 @@ export function ParticleField({ count = 2000, palette }) {
     const material = materialRef.current
     if (!material) return
     material.uniforms.uTime.value = timeRef.current
-    material.uniforms.uMid.value = mid
-    material.uniforms.uAmplitude.value = computeCurlAmplitude(treble)
+    // Reduced motion: suppress audio-reactive deformation (curl amplitude,
+    // mid-driven Z-bob) but keep the base curl-noise flow (uTime) advancing
+    // so the field reads as a calm ambient gradient rather than a frozen
+    // frame.
+    if (reducedMotion) {
+      material.uniforms.uMid.value = 0
+      material.uniforms.uAmplitude.value = 0
+    } else {
+      material.uniforms.uMid.value = mid
+      material.uniforms.uAmplitude.value = computeCurlAmplitude(treble)
+    }
 
     const targetVisibleCount = Math.min(usePlayerStore.getState().particleVisibleCount, count)
     if (targetVisibleCount !== lastVisibleCountRef.current && geometryRef.current) {

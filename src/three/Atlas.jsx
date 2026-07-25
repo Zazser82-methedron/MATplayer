@@ -5,6 +5,7 @@ import { ParticleField } from './ParticleField.jsx'
 import { ToonPostFX } from './ToonPostFX.jsx'
 import { computeCameraFlightPosition } from './cameraFlight.js'
 import { usePlayerStore } from '../store/usePlayerStore.js'
+import { useReducedMotion } from '../hooks/useReducedMotion.js'
 
 const FLIGHT_DURATION = 2.5
 
@@ -42,6 +43,7 @@ function ArtistIsland({ artist, isActive, track }) {
 export function Atlas({ artists, trackByArtistId }) {
   const { camera } = useThree()
   const currentArtistId = usePlayerStore((s) => s.currentArtistId)
+  const reducedMotion = useReducedMotion()
   const flightRef = useRef(null)
 
   useEffect(() => {
@@ -63,7 +65,10 @@ export function Atlas({ artists, trackByArtistId }) {
     const flight = flightRef.current
     if (!flight) return
     flight.elapsed += delta
-    const pos = computeCameraFlightPosition(flight.elapsed, FLIGHT_DURATION, flight.startPos, flight.endPos)
+    // Reduced motion: skip the eased Bezier flight and snap straight to the
+    // end position by always feeding the "fully arrived" elapsed value.
+    const elapsedForFlight = reducedMotion ? FLIGHT_DURATION : flight.elapsed
+    const pos = computeCameraFlightPosition(elapsedForFlight, FLIGHT_DURATION, flight.startPos, flight.endPos)
     camera.position.set(pos.x, pos.y, pos.z)
     camera.lookAt(flight.lookAt.x, flight.lookAt.y, flight.lookAt.z)
   })
