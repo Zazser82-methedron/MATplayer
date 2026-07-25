@@ -37,7 +37,7 @@ export function ParticleField({ count = 2000, palette }) {
       uTime: { value: 0 },
       uMid: { value: 0 },
       uAmplitude: { value: 0.8 },
-      uPointSize: { value: 6 },
+      uPointSize: { value: 0.2 },
       uStartColor: { value: new THREE.Color(palette.primary) },
       uEndColor: { value: new THREE.Color(palette.secondary) },
     }),

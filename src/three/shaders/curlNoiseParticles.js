@@ -105,7 +105,10 @@ void main() {
   vDistance = d;
 
   vec4 mvPosition = modelViewMatrix * vec4(newPos, 1.0);
-  gl_PointSize = uPointSize * (1.0 - d * 0.6) * (300.0 / -mvPosition.z);
+  // Clamped defensively: a particle drifting very close to the camera would
+  // otherwise blow up to a screen-covering circle (perspective size scales
+  // with 1/distance), which reads as a solid color wash rather than points.
+  gl_PointSize = min(uPointSize * (1.0 - d * 0.6) * (300.0 / -mvPosition.z), 24.0);
   gl_Position = projectionMatrix * mvPosition;
 }
 `
