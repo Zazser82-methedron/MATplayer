@@ -1,9 +1,25 @@
-import { useRef } from 'react'
+import { useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { computeBreathScale, computeBlinkScale } from './avatarMotion.js'
 
+// Трёхступенчатая рампа освещения для meshToonMaterial. NearestFilter
+// обязателен: с линейной фильтрацией ступени размываются обратно в
+// градиент и toon-эффект пропадает.
+function useToonGradientMap() {
+  return useMemo(() => {
+    const steps = new Uint8Array([80, 160, 255])
+    const texture = new THREE.DataTexture(steps, steps.length, 1, THREE.RedFormat)
+    texture.minFilter = THREE.NearestFilter
+    texture.magFilter = THREE.NearestFilter
+    texture.generateMipmaps = false
+    texture.needsUpdate = true
+    return texture
+  }, [])
+}
+
 export function AvatarProxy({ palette, energy = 0.5, outlineThickness = 0.05 }) {
+  const gradientMap = useToonGradientMap()
   const breathGroupRef = useRef()
   const leftEyeRef = useRef()
   const rightEyeRef = useRef()
@@ -21,7 +37,7 @@ export function AvatarProxy({ palette, energy = 0.5, outlineThickness = 0.05 }) 
     <group ref={breathGroupRef}>
       <mesh name="avatar-body">
         <icosahedronGeometry args={[1, 1]} />
-        <meshToonMaterial color={palette.primary} />
+        <meshToonMaterial color={palette.primary} gradientMap={gradientMap} />
       </mesh>
       <mesh name="avatar-outline" scale={1 + outlineThickness}>
         <icosahedronGeometry args={[1, 1]} />
