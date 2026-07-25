@@ -1,6 +1,7 @@
+import { memo } from 'react'
 import { EffectComposer, Bloom, GodRays } from '@react-three/postprocessing'
 
-export function ToonPostFX({
+function ToonPostFXImpl({
   bloomIntensity = 1.2,
   godRaysSource = null,
   moodIsMelancholic = false,
@@ -35,3 +36,12 @@ export function ToonPostFX({
     </EffectComposer>
   )
 }
+
+// GodRays из @react-three/postprocessing пересоздаёт эффект на КАЖДЫЙ рендер
+// (внутри useMemo с зависимостью от объекта props, который React создаёт
+// заново каждый раз) и монтирует его через <primitive dispose={null}> —
+// то есть render targets выброшенного эффекта не освобождаются. Все пропсы
+// здесь примитивы плюс стабильная ссылка на меш, поэтому memo надёжно
+// отсекает лишние перерисовки и пересоздания остаются только при реальной
+// смене трека.
+export const ToonPostFX = memo(ToonPostFXImpl)
