@@ -19,9 +19,7 @@ import { uiVolumeToGain, clampVolume } from './lib/player/volume.js'
 import { QueuePanel } from './ui/QueuePanel.jsx'
 import { nextRepeatMode, computeNextIndex, buildShuffledOrder } from './lib/player/queue.js'
 import { parseDeepLink, buildDeepLinkSearch } from './lib/player/deepLink.js'
-import { loadAudioBuffer } from './lib/audio/loadAudioBuffer.js'
-import { detectBpm } from './lib/audio/beatDetector.js'
-import { computeWaveformPeaks } from './lib/audio/waveform.js'
+import { analyzeTrack } from './lib/audio/analyzeTrack.js'
 import { SeekBar } from './ui/SeekBar.jsx'
 
 const WAVEFORM_BUCKETS = 160
@@ -100,7 +98,12 @@ export default function App() {
   const [isQueueOpen, setIsQueueOpen] = useState(false)
   const [peaks, setPeaks] = useState([])
   const [duration, setDuration] = useState(0)
-  const currentTime = usePlayerStore((s) => s.currentTime)
+  // Подписка на целые секунды, а не на сырое currentTime: сырое значение
+  // пишется каждый кадр анимации, и App (вместе со всем поддеревом <Canvas>,
+  // которое R3F не изолирует) переспрашивался бы 60 раз в секунду. Шкала
+  // показывает мм:сс, а одна полоска waveform покрывает почти секунду —
+  // разницы на глаз нет.
+  const currentSecond = usePlayerStore((s) => Math.floor(s.currentTime))
   const uxMode = usePlayerStore((s) => s.uxMode)
   const repeatMode = usePlayerStore((s) => s.repeatMode)
   const isShuffled = usePlayerStore((s) => s.isShuffled)
@@ -241,29 +244,34 @@ export default function App() {
   // Анализ необязателен: при сбое остаётся tempo_bpm из профиля трека.
   const audioSrc = currentTrackId ? `${import.meta.env.BASE_URL}audio/${activeTrack.audio_src}` : null
   useEffect(() => {
-    let cancelled = false
     usePlayerStore.getState().setDetectedBpm(activeTrack.tempo_bpm ?? null)
+    usePlayerStore.getState().setBeatOffset(0)
     setPeaks([])
+    // Длительность тоже сбрасываем: без этого между сменой трека и его
+    // loadedmetadata шкала показывала бы длину предыдущего трека рядом с
+    // позицией нового.
+    setDuration(0)
     if (!audioSrc) return undefined
 
     const context = audioRef.current?.__matplayerContext
     if (!context) return undefined
 
-    loadAudioBuffer(audioSrc, context)
-      .then((buffer) => {
-        if (!cancelled) setPeaks(computeWaveformPeaks(buffer.getChannelData(0), WAVEFORM_BUCKETS))
-        return detectBpm(buffer)
-      })
-      .then((bpm) => {
-        if (!cancelled) usePlayerStore.getState().setDetectedBpm(bpm)
+    // Прокликивание десяти треков подряд без отмены запускало бы десять
+    // параллельных загрузок по ~6 МБ и десять декодирований.
+    const controller = new AbortController()
+    analyzeTrack(audioSrc, context, WAVEFORM_BUCKETS, { signal: controller.signal })
+      .then(({ peaks: trackPeaks, bpm, beatOffset }) => {
+        if (controller.signal.aborted) return
+        setPeaks(trackPeaks)
+        usePlayerStore.getState().setDetectedBpm(bpm)
+        usePlayerStore.getState().setBeatOffset(beatOffset)
       })
       .catch(() => {
-        // Профильный tempo_bpm уже выставлен выше — этого достаточно.
+        // Профильный tempo_bpm уже выставлен выше — этого достаточно,
+        // визуал просто останется без waveform.
       })
 
-    return () => {
-      cancelled = true
-    }
+    return () => controller.abort()
   }, [audioSrc, activeTrack.tempo_bpm])
 
   useEffect(() => {
@@ -308,7 +316,7 @@ export default function App() {
       />
       {uxMode === 'utility' && (
         <SeekBar
-          currentTime={currentTime}
+          currentTime={currentSecond}
           duration={duration}
           peaks={peaks}
           onSeek={(time) => {

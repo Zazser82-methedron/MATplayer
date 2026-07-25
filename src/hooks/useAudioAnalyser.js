@@ -24,8 +24,23 @@ export function useAudioAnalyser(audioElementRef) {
     }
     tick()
 
+    // Контекст стартует в состоянии suspended, пока не было жеста
+    // пользователя. Всё воспроизведение маршрутизировано через него, поэтому
+    // до resume() звука нет, а анализатор отдаёт нули. Пробуем возобновить
+    // на первом же взаимодействии — после успеха подписки снимаем.
+    const resumeOnGesture = () => {
+      engine.resume()
+      if (engine.context.state === 'running') detachGestureListeners()
+    }
+    const GESTURE_EVENTS = ['pointerdown', 'keydown', 'touchstart']
+    const detachGestureListeners = () => {
+      GESTURE_EVENTS.forEach((name) => window.removeEventListener(name, resumeOnGesture))
+    }
+    GESTURE_EVENTS.forEach((name) => window.addEventListener(name, resumeOnGesture))
+
     return () => {
       cancelAnimationFrame(rafId)
+      detachGestureListeners()
       delete audioEl.__matplayerContext
       engine.dispose()
       engineRef.current = null

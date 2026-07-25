@@ -11,6 +11,7 @@ const defaults = {
   particleVisibleCount: 2000,
   degradationLevel: 0,
   detectedBpm: null,
+  beatOffset: 0,
   repeatMode: 'off',
   isShuffled: false,
   shuffledOrder: [],

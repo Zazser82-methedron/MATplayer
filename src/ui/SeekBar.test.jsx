@@ -20,15 +20,44 @@ describe('SeekBar', () => {
   it('exposes progress through an accessible slider', () => {
     render(<SeekBar currentTime={30} duration={120} peaks={[]} onSeek={() => {}} />)
     const slider = screen.getByRole('slider', { name: 'Seek' })
-    expect(slider).toHaveAttribute('aria-valuenow', '30')
-    expect(slider).toHaveAttribute('aria-valuemax', '120')
+    expect(slider).toHaveValue('30')
+    expect(slider).toHaveAttribute('max', '120')
   })
 
-  it('reports the seeked time', () => {
+  it('does not seek while the slider is still being dragged', () => {
     const onSeek = vi.fn()
     render(<SeekBar currentTime={30} duration={120} peaks={[]} onSeek={onSeek} />)
     fireEvent.change(screen.getByRole('slider', { name: 'Seek' }), { target: { value: '75' } })
+    expect(onSeek).not.toHaveBeenCalled()
+    // Позиция при этом уже показывается новая — иначе ползунок отскакивал бы
+    // назад под пальцем, пока стор толкает в него время воспроизведения.
+    expect(screen.getByText('1:15')).toBeInTheDocument()
+  })
+
+  it('seeks once when the drag is released', () => {
+    const onSeek = vi.fn()
+    render(<SeekBar currentTime={30} duration={120} peaks={[]} onSeek={onSeek} />)
+    const slider = screen.getByRole('slider', { name: 'Seek' })
+    fireEvent.change(slider, { target: { value: '75' } })
+    fireEvent.pointerUp(slider)
+    expect(onSeek).toHaveBeenCalledTimes(1)
     expect(onSeek).toHaveBeenCalledWith(75)
+  })
+
+  it('ignores a release that was not preceded by a drag', () => {
+    const onSeek = vi.fn()
+    render(<SeekBar currentTime={30} duration={120} peaks={[]} onSeek={onSeek} />)
+    fireEvent.pointerUp(screen.getByRole('slider', { name: 'Seek' }))
+    expect(onSeek).not.toHaveBeenCalled()
+  })
+
+  it('follows playback again after the drag is committed', () => {
+    const { rerender } = render(<SeekBar currentTime={30} duration={120} peaks={[]} onSeek={() => {}} />)
+    const slider = screen.getByRole('slider', { name: 'Seek' })
+    fireEvent.change(slider, { target: { value: '75' } })
+    fireEvent.pointerUp(slider)
+    rerender(<SeekBar currentTime={76} duration={120} peaks={[]} onSeek={() => {}} />)
+    expect(screen.getByText('1:16')).toBeInTheDocument()
   })
 
   it('renders readable timestamps for position and duration', () => {

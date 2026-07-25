@@ -40,6 +40,7 @@ export const usePlayerStore = create(
       particleVisibleCount: 2000,
       degradationLevel: 0,
       detectedBpm: null,
+      beatOffset: 0,
       repeatMode: 'off', // 'off' | 'all' | 'one'
       isShuffled: false,
       shuffledOrder: [],
@@ -55,6 +56,7 @@ export const usePlayerStore = create(
       setParticleVisibleCount: (count) => set({ particleVisibleCount: count }),
       setDegradationLevel: (levelIndex) => set({ degradationLevel: levelIndex }),
       setDetectedBpm: (bpm) => set({ detectedBpm: bpm }),
+      setBeatOffset: (offset) => set({ beatOffset: offset }),
       setRepeatMode: (mode) => set({ repeatMode: mode }),
       setShuffle: (isShuffled, shuffledOrder) => set({ isShuffled, shuffledOrder }),
       toggleFavorite: (trackId) => set((state) => ({ favorites: toggleFavorite(state.favorites, trackId) })),

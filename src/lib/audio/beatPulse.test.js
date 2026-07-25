@@ -26,6 +26,21 @@ describe('computeBeatPhase', () => {
     expect(computeBeatPhase(1.3, 0)).toBe(0)
     expect(computeBeatPhase(1.3, -60)).toBe(0)
   })
+
+  it('anchors the grid to the detected first beat', () => {
+    // Первая доля на 0.25 с: фаза обязана обнуляться там, а не в нуле.
+    expect(computeBeatPhase(0.25, 120, 0.25)).toBeCloseTo(0, 5)
+    expect(computeBeatPhase(0.75, 120, 0.25)).toBeCloseTo(0, 5)
+    expect(computeBeatPhase(0.5, 120, 0.25)).toBeCloseTo(0.5, 5)
+  })
+
+  it('stays inside 0..1 before the first beat, where the offset makes time negative', () => {
+    for (const t of [0, 0.05, 0.2]) {
+      const phase = computeBeatPhase(t, 120, 0.25)
+      expect(phase).toBeGreaterThanOrEqual(0)
+      expect(phase).toBeLessThan(1)
+    }
+  })
 })
 
 describe('computeBeatPulse', () => {
@@ -38,12 +53,19 @@ describe('computeBeatPulse', () => {
   })
 
   it('decays monotonically between beats', () => {
+    // Точки берём явно и не доводим до следующей доли: ровно на ней фаза
+    // законно обнуляется и импульс скачком возвращается к 1, так что
+    // накопление t += 0.05 упиралось бы в границу и ложно падало.
     let previous = Infinity
-    for (let t = 0; t < 0.5; t += 0.05) {
+    for (const t of [0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45]) {
       const pulse = computeBeatPulse(t, 120)
       expect(pulse).toBeLessThanOrEqual(previous + 1e-9)
       previous = pulse
     }
+  })
+
+  it('fires again on the next beat', () => {
+    expect(computeBeatPulse(0.5, 120)).toBeCloseTo(1, 5)
   })
 
   it('is flat at zero when BPM is unknown', () => {
