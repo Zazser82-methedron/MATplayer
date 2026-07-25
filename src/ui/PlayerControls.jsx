@@ -8,7 +8,7 @@ export function PlayerControls({ artistName, isPlaying, onTogglePlay, onNextArti
   return (
     <div className="player-controls" role="toolbar" aria-label="Player controls">
       <span className="player-controls__artist">{artistName}</span>
-      <button type="button" onClick={onTogglePlay} aria-pressed={isPlaying}>
+      <button type="button" onClick={onTogglePlay}>
         {isPlaying ? 'Pause' : 'Play'}
       </button>
       <button type="button" onClick={onNextArtist}>
