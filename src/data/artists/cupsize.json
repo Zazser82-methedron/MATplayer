@@ -1,0 +1,7 @@
+{
+  "artist_id": "cupsize",
+  "name": "Cupsize",
+  "default_palette": { "background": "#0d0101", "primary": "#ff0055" },
+  "atlas_position": { "x": 0, "y": 0, "z": 0 },
+  "track_ids": ["cupsize_t01_knives", "cupsize_zppp", "cupsize_t24_flowers"]
+}

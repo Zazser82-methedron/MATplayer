@@ -1,0 +1,10 @@
+{
+  "track_id": "cupsize_t24_flowers",
+  "tempo_bpm": 92,
+  "energy": 0.25,
+  "mood": "melancholic_romantic",
+  "color_palette": { "background": "#1a0f14", "primary": "#e8b4c8", "secondary": "#f2ede6" },
+  "shader_presets": { "noise_type": "laminar", "outline_thickness": 0.02, "bloom_intensity": 0.6 },
+  "lyrics_ref": "cupsize/track-24.json",
+  "audio_src": "cupsize/24.mp3"
+}

@@ -1,0 +1,10 @@
+{
+  "track_id": "placeholder_a_01",
+  "tempo_bpm": 140,
+  "energy": 0.8,
+  "mood": "aggressive_industrial",
+  "color_palette": { "background": "#050505", "primary": "#00e5ff", "secondary": "#ff2e63" },
+  "shader_presets": { "noise_type": "turbulent_glitch", "outline_thickness": 0.07, "bloom_intensity": 1.8 },
+  "lyrics_ref": "placeholder-a/track-01.json",
+  "audio_src": "placeholder-a/01.mp3"
+}

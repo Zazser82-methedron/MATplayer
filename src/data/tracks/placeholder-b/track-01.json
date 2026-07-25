@@ -1,0 +1,10 @@
+{
+  "track_id": "placeholder_b_01",
+  "tempo_bpm": 78,
+  "energy": 0.15,
+  "mood": "melancholic_dreampop",
+  "color_palette": { "background": "#0f1420", "primary": "#a8c8ec", "secondary": "#e8d8f0" },
+  "shader_presets": { "noise_type": "laminar", "outline_thickness": 0.015, "bloom_intensity": 0.9 },
+  "lyrics_ref": "placeholder-b/track-01.json",
+  "audio_src": "placeholder-b/01.mp3"
+}
