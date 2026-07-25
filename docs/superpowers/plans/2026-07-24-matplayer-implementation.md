@@ -2130,15 +2130,14 @@ git commit -m "feat: add multi-artist atlas with bezier camera flight between is
 
 ## Task 15: Audio crossfade between artists
 
-Scoping note: the design spec (section 5) describes a full frame-buffer double-pass screen-space wipe for scene transitions. This task implements the audio crossfade exactly as specified (GainNode ramp over ~1.75s), but for the *scene* side uses a simpler, fully-adequate technique — fading the outgoing/incoming island's material opacity over the same flight duration already computed in Task 14 — rather than a screen-space FBO shader wipe. That fuller screen-space wipe is a visual-polish upgrade explicitly deferred beyond this plan, not silently dropped.
+Scoping note (revised after Task 14's code review surfaced a real plan gap): the design spec (section 5) describes a full frame-buffer double-pass screen-space wipe for scene transitions. The ORIGINAL version of this task planned a simpler substitute — fading outgoing/incoming island opacity via a plain `opacity` prop on `AvatarProxy`/`ParticleField`. Task 14's reviewer correctly identified that this doesn't actually work with `Atlas.jsx`'s architecture: `ArtistIsland` only ever mounts ONE island as a full scene (`isActive`) at a time — the outgoing island is already demoted to a marker before any opacity fade could apply, and a per-frame-animating value like this needs the codebase's established transient-ref-read pattern (like `usePlayerStore.getState().audioBands`), not a plain re-rendering React prop, to avoid 60fps re-renders.
+
+Properly fixing the visual side means reworking `Atlas.jsx` to keep both the outgoing and incoming islands mounted as full scenes for the transition window, with opacity driven by refs mutated in `Atlas`'s own `useFrame` — a real architectural change to a component two tasks already depend on, not a one-line addition. Rather than rush that redesign in under this task's remaining scope, THIS task now implements only the **audio crossfade** (fully self-contained, no `Atlas.jsx` dependency) and explicitly defers the visual crossfade as a follow-up enhancement. Until that follow-up lands, artist switches keep Task 14's existing behavior: the destination scene mounts at full opacity as soon as `currentArtistId` changes, while the camera is still flying toward it — a known, documented interim trade-off, not a regression introduced here.
 
 **Files:**
 - Create: `src/lib/audio/crossfade.js`
 - Test: `src/lib/audio/crossfade.test.js`
 - Create: `src/lib/audio/AudioCrossfader.js`
-- Modify: `src/three/AvatarProxy.jsx` (add `opacity` prop)
-- Modify: `src/three/ParticleField.jsx` (add `opacity` prop)
-- Modify: `src/three/shaders/curlNoiseParticles.js` (fragment shader multiplies alpha by `uOpacity`)
 
 - [ ] **Step 1: Write failing test for the gain-curve math**
 
@@ -2218,88 +2217,19 @@ export class AudioCrossfader {
 }
 ```
 
-- [ ] **Step 6: Add an `opacity` prop to `src/three/AvatarProxy.jsx`**
-
-Rewrite the file, changing only the two material lines and the prop signature:
-
-```jsx
-import { useRef } from 'react'
-import { useFrame } from '@react-three/fiber'
-import * as THREE from 'three'
-import { computeBreathScale, computeBlinkScale } from './avatarMotion.js'
-
-export function AvatarProxy({ palette, energy = 0.5, outlineThickness = 0.05, opacity = 1 }) {
-  const breathGroupRef = useRef()
-  const leftEyeRef = useRef()
-  const rightEyeRef = useRef()
-
-  useFrame((state) => {
-    const t = state.clock.elapsedTime
-    const breath = computeBreathScale(t, energy)
-    const blink = computeBlinkScale(t)
-    if (breathGroupRef.current) breathGroupRef.current.scale.set(1, breath, 1)
-    if (leftEyeRef.current) leftEyeRef.current.scale.y = blink
-    if (rightEyeRef.current) rightEyeRef.current.scale.y = blink
-  })
-
-  return (
-    <group ref={breathGroupRef}>
-      <mesh name="avatar-body">
-        <icosahedronGeometry args={[1, 1]} />
-        <meshToonMaterial color={palette.primary} transparent opacity={opacity} />
-      </mesh>
-      <mesh name="avatar-outline" scale={1 + outlineThickness}>
-        <icosahedronGeometry args={[1, 1]} />
-        <meshBasicMaterial color="#000000" side={THREE.BackSide} transparent opacity={opacity} />
-      </mesh>
-      <mesh ref={leftEyeRef} position={[-0.35, 0.2, 0.85]} name="avatar-eye-left">
-        <sphereGeometry args={[0.12, 12, 12]} />
-        <meshBasicMaterial color={palette.secondary} transparent opacity={opacity} />
-      </mesh>
-      <mesh ref={rightEyeRef} position={[0.35, 0.2, 0.85]} name="avatar-eye-right">
-        <sphereGeometry args={[0.12, 12, 12]} />
-        <meshBasicMaterial color={palette.secondary} transparent opacity={opacity} />
-      </mesh>
-    </group>
-  )
-}
-```
-
-- [ ] **Step 7: Add a `uOpacity` uniform to the particle shader and `opacity` prop to `ParticleField`**
-
-In `src/three/shaders/curlNoiseParticles.js`, change the fragment shader's uniform block and final line:
-
-```js
-export const fragmentShader = `
-uniform vec3 uStartColor;
-uniform vec3 uEndColor;
-uniform float uOpacity;
-
-varying float vDistance;
-
-void main() {
-  vec2 uv = gl_PointCoord - 0.5;
-  float circ = 1.0 - smoothstep(0.35, 0.5, length(uv));
-  if (circ <= 0.0) discard;
-  vec3 color = mix(uStartColor, uEndColor, vDistance);
-  gl_FragColor = vec4(color, circ * (1.0 - vDistance * 0.3) * uOpacity);
-}
-`
-```
-
-In `src/three/ParticleField.jsx`, add `opacity = 1` to the props, add `uOpacity: { value: opacity }` to the `uniforms` memo (with `opacity` in its dependency array), and set `material.uniforms.uOpacity.value = opacity` inside `useFrame` alongside the existing uniform updates.
-
-- [ ] **Step 8: Verify the project builds**
+- [ ] **Step 6: Verify the project builds**
 
 Run: `npm run build`
 Expected: exits 0
 
-- [ ] **Step 9: Commit**
+- [ ] **Step 7: Commit**
 
 ```bash
-git add src/lib/audio/crossfade.js src/lib/audio/crossfade.test.js src/lib/audio/AudioCrossfader.js src/three/AvatarProxy.jsx src/three/ParticleField.jsx src/three/shaders/curlNoiseParticles.js
-git commit -m "feat: add audio crossfade and opacity-based scene crossfade"
+git add src/lib/audio/crossfade.js src/lib/audio/crossfade.test.js src/lib/audio/AudioCrossfader.js
+git commit -m "feat: add audio crossfade gain-curve math and AudioCrossfader"
 ```
+
+**Deferred (not this task):** visual scene crossfade via ref-driven opacity on `AvatarProxy`/`ParticleField`, plus the `Atlas.jsx` rework needed to keep both islands mounted during a transition. Tracked as a follow-up, not silently dropped — see the scoping note above for exactly what that rework requires.
 
 ---
 
@@ -3121,7 +3051,7 @@ import { vertexShader, fragmentShader } from './shaders/curlNoiseParticles.js'
 import { computeAudioTimeStep, computeCurlAmplitude } from './audioTimeStep.js'
 import { usePlayerStore } from '../store/usePlayerStore.js'
 
-export function ParticleField({ count = 2000, palette, opacity = 1 }) {
+export function ParticleField({ count = 2000, palette }) {
   const materialRef = useRef()
   const geometryRef = useRef()
   const timeRef = useRef(0)
@@ -3152,11 +3082,10 @@ export function ParticleField({ count = 2000, palette, opacity = 1 }) {
       uMid: { value: 0 },
       uAmplitude: { value: 0.8 },
       uPointSize: { value: 6 },
-      uOpacity: { value: opacity },
       uStartColor: { value: new THREE.Color(palette.primary) },
       uEndColor: { value: new THREE.Color(palette.secondary) },
     }),
-    [palette, opacity],
+    [palette],
   )
 
   useFrame(() => {
@@ -3167,7 +3096,6 @@ export function ParticleField({ count = 2000, palette, opacity = 1 }) {
       material.uniforms.uTime.value = timeRef.current
       material.uniforms.uMid.value = mid
       material.uniforms.uAmplitude.value = computeCurlAmplitude(treble)
-      material.uniforms.uOpacity.value = opacity
     }
 
     const targetVisibleCount = Math.min(usePlayerStore.getState().particleVisibleCount, count)
@@ -3652,11 +3580,11 @@ git commit -m "ci: add GitHub Pages deploy workflow"
 
 ## Plan self-review
 
-**Spec coverage:** architecture/stack (Task 1), data model + ZMP migration + content (Tasks 2, 4, 9), rendering/visual system — atlas, avatar, particles, toon/bloom/god-rays (Tasks 10-14), audio + lyrics sync (Tasks 3, 5, 6, 20), UX modes/mobile/perf/a11y (Tasks 17-20), deployment (Task 21). Two spec items are deliberately simplified with the trade-off stated inline rather than silently dropped: the screen-space FBO transition wipe (Task 15 uses opacity crossfade instead) and the literal 100k/15k particle counts (Task 19 uses a 2000-baseline ladder). Populating all remaining ZMP track metadata (tracks 2-9, 11-23, 25-26) is explicitly out of this plan's scope (content authoring, not engineering) per Task 9.
+**Spec coverage:** architecture/stack (Task 1), data model + ZMP migration + content (Tasks 2, 4, 9), rendering/visual system — atlas, avatar, particles, toon/bloom/god-rays (Tasks 10-14), audio + lyrics sync (Tasks 3, 5, 6, 20), UX modes/mobile/perf/a11y (Tasks 17-20), deployment (Task 21). Several spec items are deliberately simplified with the trade-off stated inline rather than silently dropped: the screen-space FBO transition wipe (Task 15 originally planned an opacity-crossfade substitute; Task 14's code review found that substitute didn't actually fit `Atlas.jsx`'s architecture — see Task 15's revised scoping note — so Task 15 now ships audio-only crossfade, and the visual crossfade is a documented follow-up, not this plan's deliverable) and the literal 100k/15k particle counts (Task 19 uses a 2000-baseline ladder). Populating all remaining ZMP track metadata (tracks 2-9, 11-23, 25-26) is explicitly out of this plan's scope (content authoring, not engineering) per Task 9.
 
 **Placeholder scan:** no TBD/TODO markers; every step shows complete, runnable code or an exact command with expected output.
 
-**Type/name consistency check:** `usePlayerStore` field and action names (`audioBands`, `setAudioBands`, `currentTime`, `setTime`, `uxMode`, `setUxMode`, `particleVisibleCount`, `setParticleVisibleCount`) are identical everywhere they're referenced across Tasks 7, 8, 9, 15, 17, 19, 20. `ParticleField`/`AvatarProxy` prop names (`palette`, `energy`, `outlineThickness`, `opacity`) match between their Task 10-11 definitions and every later call site in `ArtistScene`/`Atlas` (Tasks 13-14). `track_id`/`lyrics_ref`/`audio_src` field names match between the Zod schema (Task 2), the authored JSON (Task 9), and every place that reads them (Tasks 13, 14, 16, 20).
+**Type/name consistency check:** `usePlayerStore` field and action names (`audioBands`, `setAudioBands`, `currentTime`, `setTime`, `uxMode`, `setUxMode`, `particleVisibleCount`, `setParticleVisibleCount`) are identical everywhere they're referenced across Tasks 7, 8, 9, 17, 19, 20. `ParticleField`/`AvatarProxy` prop names (`palette`, `energy`, `outlineThickness`) match between their Task 10-12 definitions and every later call site in `ArtistScene`/`Atlas` (Tasks 13-14, 19) — no `opacity` prop exists on either component in this plan (removed from scope along with Task 15's visual-crossfade descoping, including the matching `uOpacity` removal from Task 19's `ParticleField` rewrite). `track_id`/`lyrics_ref`/`audio_src` field names match between the Zod schema (Task 2), the authored JSON (Task 9), and every place that reads them (Tasks 13, 14, 16, 20).
 
 ---
 
