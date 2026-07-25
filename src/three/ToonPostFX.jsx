@@ -12,8 +12,15 @@ export function ToonPostFX({
   // поэтому дешевле не монтировать его вовсе.
   if (!postFxEnabled) return null
 
+  const godRaysActive = moodIsMelancholic && Boolean(godRaysSource)
+
   return (
-    <EffectComposer>
+    // GodRays читает буфер глубины, и MSAA-резолв композитора пытается
+    // блитить его сам в себя — драйвер каждый кадр отдаёт GL_INVALID_OPERATION
+    // («read and write depth stencil attachments cannot be the same image»).
+    // Гасим multisampling только когда лучи реально включены: терять
+    // сглаживание на всех остальных треках незачем.
+    <EffectComposer multisampling={godRaysActive ? 0 : 8}>
       {bloomEnabled && (
         <Bloom
           intensity={bloomIntensity}
