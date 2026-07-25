@@ -5,8 +5,9 @@ import { vertexShader, fragmentShader } from './shaders/curlNoiseParticles.js'
 import { computeAudioTimeStep, computeCurlAmplitude } from './audioTimeStep.js'
 import { usePlayerStore } from '../store/usePlayerStore.js'
 import { useReducedMotion } from '../hooks/useReducedMotion.js'
+import { noiseTypeToFloat } from './noiseTypes.js'
 
-export function ParticleField({ count = 2000, palette }) {
+export function ParticleField({ count = 2000, palette, noiseType }) {
   const materialRef = useRef()
   const geometryRef = useRef()
   const timeRef = useRef(0)
@@ -38,10 +39,11 @@ export function ParticleField({ count = 2000, palette }) {
       uMid: { value: 0 },
       uAmplitude: { value: 0.8 },
       uPointSize: { value: 0.2 },
+      uNoiseType: { value: noiseTypeToFloat(noiseType) },
       uStartColor: { value: new THREE.Color(palette.primary) },
       uEndColor: { value: new THREE.Color(palette.secondary) },
     }),
-    [palette],
+    [palette, noiseType],
   )
 
   useFrame(() => {

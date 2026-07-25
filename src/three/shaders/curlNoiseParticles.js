@@ -86,6 +86,7 @@ uniform float uTime;
 uniform float uMid;
 uniform float uAmplitude;
 uniform float uPointSize;
+uniform float uNoiseType;
 
 attribute vec3 aOriginal;
 attribute vec3 aNormal;
@@ -95,8 +96,27 @@ varying float vDistance;
 ${SIMPLEX_NOISE_3D_GLSL}
 ${CURL_NOISE_GLSL}
 
+// Три режима потока частиц под настроение трека (shader_presets.noise_type).
+// Ветвление идёт по uniform — одинаково для всех вершин, дивергенции нет.
+vec3 flowField(vec3 p, float t) {
+  if (uNoiseType < 0.5) {
+    // simplex_curly — органические вихри, базовый режим
+    return curlNoise(p * 0.5);
+  }
+  if (uNoiseType < 1.5) {
+    // laminar — выраженный направленный дрейф вверх с лёгким возмущением
+    vec3 drift = vec3(0.12, 1.0, 0.12);
+    return normalize(drift + curlNoise(p * 0.22) * 0.25);
+  }
+  // turbulent_glitch — дискретизация времени даёт скачкообразные разрывы,
+  // domain warping — рваную, «сломанную» структуру потока
+  float qt = floor(t * 12.0) / 12.0;
+  vec3 warp = vec3(snoise(p * 1.7 + qt), snoise(p * 1.9 - qt), snoise(p * 2.1 + qt));
+  return curlNoise(p * 0.8 + warp * 0.6);
+}
+
 void main() {
-  vec3 target = aOriginal + aNormal * 0.1 + curlNoise(position * 0.5) * uAmplitude;
+  vec3 target = aOriginal + aNormal * 0.1 + flowField(position, uTime) * uAmplitude;
 
   float d = clamp(length(position - target) / 4.0, 0.0, 1.0);
   vec3 newPos = mix(aOriginal, target, pow(d, 4.0));

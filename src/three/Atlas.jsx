@@ -31,7 +31,7 @@ function ArtistIsland({ artist, isActive, track }) {
         energy={track.energy}
         outlineThickness={track.shader_presets.outline_thickness}
       />
-      <ParticleField palette={track.color_palette} />
+      <ParticleField palette={track.color_palette} noiseType={track.shader_presets.noise_type} />
       <ToonPostFX
         bloomIntensity={track.shader_presets.bloom_intensity}
         moodIsMelancholic={track.mood.startsWith('melancholic')}
