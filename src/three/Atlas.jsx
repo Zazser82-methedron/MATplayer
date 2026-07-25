@@ -33,8 +33,11 @@ function ArtistIsland({ artist, isActive, track }) {
   return (
     <group position={[x, y, z]} name={`island-active-${artist.artist_id}`}>
       <fogExp2 attach="fog" args={[track.color_palette.background, 0.08]} />
-      <ambientLight intensity={0.6} />
-      <pointLight position={[3, 3, 3]} intensity={1.2} />
+      {/* Низкий ambient и сильный боковой источник — иначе toon-рампа не
+          читается: при равномерной засветке вся видимая поверхность попадает
+          в одну ступень градиента и аватар выглядит плоской заливкой. */}
+      <ambientLight intensity={0.22} />
+      <directionalLight position={[4, 3, 2]} intensity={2.6} />
       <AvatarProxy
         palette={track.color_palette}
         energy={track.energy}
