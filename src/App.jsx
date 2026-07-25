@@ -74,6 +74,7 @@ export default function App() {
   const [isQueueOpen, setIsQueueOpen] = useState(false)
   const repeatMode = usePlayerStore((s) => s.repeatMode)
   const isShuffled = usePlayerStore((s) => s.isShuffled)
+  const favorites = usePlayerStore((s) => s.favorites)
   useAudioAnalyser(audioRef)
   useAudioPlaybackSync(audioRef)
 
@@ -154,7 +155,8 @@ export default function App() {
     if (!audioEl) return
     audioEl.load()
     audioEl.play().catch(() => {})
-  }, [activeTrack.audio_src])
+    usePlayerStore.getState().recordPlay(activeTrack.track_id)
+  }, [activeTrack.audio_src, activeTrack.track_id])
 
   // Громкость применяется через перцептивную кривую и переживает смену трека:
   // audioEl.load() сбрасывает не всё, а состояние mute живёт только здесь.
@@ -245,6 +247,8 @@ export default function App() {
           selectTrack(artistId, trackId)
           setIsLibraryOpen(false)
         }}
+        favorites={favorites}
+        onToggleFavorite={(trackId) => usePlayerStore.getState().toggleFavorite(trackId)}
       />
     </div>
   )

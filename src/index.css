@@ -327,6 +327,32 @@ body {
   border-color: rgba(255, 255, 255, 0.3);
 }
 
+.library-panel__item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.library-panel__item .library-panel__row {
+  flex: 1;
+  min-width: 0;
+}
+
+.library-panel__fav {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: #f2ede6;
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 6px 8px;
+  flex-shrink: 0;
+}
+
+.library-panel__fav[aria-pressed='true'] {
+  color: #ffd257;
+}
+
 .library-panel__title {
   font-weight: 600;
   overflow: hidden;

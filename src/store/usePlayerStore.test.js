@@ -10,6 +10,11 @@ const defaults = {
   audioBands: { bass: 0, mid: 0, treble: 0, level: 0 },
   particleVisibleCount: 2000,
   degradationLevel: 0,
+  repeatMode: 'off',
+  isShuffled: false,
+  shuffledOrder: [],
+  favorites: [],
+  history: [],
 }
 
 describe('usePlayerStore', () => {
@@ -46,5 +51,18 @@ describe('usePlayerStore', () => {
   it('setDegradationLevel updates degradationLevel', () => {
     usePlayerStore.getState().setDegradationLevel(2)
     expect(usePlayerStore.getState().degradationLevel).toBe(2)
+  })
+
+  it('toggleFavorite adds then removes a track', () => {
+    usePlayerStore.getState().toggleFavorite('t1')
+    expect(usePlayerStore.getState().favorites).toEqual(['t1'])
+    usePlayerStore.getState().toggleFavorite('t1')
+    expect(usePlayerStore.getState().favorites).toEqual([])
+  })
+
+  it('recordPlay pushes onto history newest-first', () => {
+    usePlayerStore.getState().recordPlay('t1')
+    usePlayerStore.getState().recordPlay('t2')
+    expect(usePlayerStore.getState().history).toEqual(['t2', 't1'])
   })
 })

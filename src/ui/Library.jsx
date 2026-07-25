@@ -1,7 +1,16 @@
 import { useEffect, useState } from 'react'
 import { searchLibraryEntries, formatMood } from '../lib/library/buildLibrary.js'
 
-export function Library({ entries, activeArtistId, activeTrackId, isOpen, onClose, onSelectTrack }) {
+export function Library({
+  entries,
+  activeArtistId,
+  activeTrackId,
+  isOpen,
+  onClose,
+  onSelectTrack,
+  favorites = [],
+  onToggleFavorite,
+}) {
   const [query, setQuery] = useState('')
 
   useEffect(() => {
@@ -38,7 +47,7 @@ export function Library({ entries, activeArtistId, activeTrackId, isOpen, onClos
         {results.map((entry) => {
           const isActive = entry.artistId === activeArtistId && entry.trackId === activeTrackId
           return (
-            <li key={entry.trackId}>
+            <li key={entry.trackId} className="library-panel__item">
               <button
                 type="button"
                 className="library-panel__row"
@@ -48,6 +57,15 @@ export function Library({ entries, activeArtistId, activeTrackId, isOpen, onClos
                 <span className="library-panel__title">{entry.title}</span>
                 <span className="library-panel__artist">{entry.artistName}</span>
                 <span className="library-panel__mood">{formatMood(entry.mood)}</span>
+              </button>
+              <button
+                type="button"
+                className="library-panel__fav"
+                aria-pressed={favorites.includes(entry.trackId)}
+                aria-label={`Favorite ${entry.title}`}
+                onClick={() => onToggleFavorite?.(entry.trackId)}
+              >
+                {favorites.includes(entry.trackId) ? '★' : '☆'}
               </button>
             </li>
           )

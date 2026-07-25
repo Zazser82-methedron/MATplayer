@@ -37,8 +37,10 @@ describe('Library', () => {
     renderLibrary()
     expect(screen.getByText('ЗПППП')).toBeInTheDocument()
     expect(screen.getByText('Halo')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /ЗПППП/ })).toHaveAttribute('aria-current', 'true')
-    expect(screen.getByRole('button', { name: /Halo/ })).not.toHaveAttribute('aria-current')
+    // Якорь на начало строки: у строки трека доступное имя начинается с
+    // названия, у кнопки избранного — со слова Favorite, иначе совпадают обе.
+    expect(screen.getByRole('button', { name: /^ЗПППП/ })).toHaveAttribute('aria-current', 'true')
+    expect(screen.getByRole('button', { name: /^Halo/ })).not.toHaveAttribute('aria-current')
   })
 
   it('filters the list as the user types in the search box', () => {
@@ -59,7 +61,7 @@ describe('Library', () => {
   it('calls onSelectTrack with artist and track id when a row is clicked', () => {
     const onSelectTrack = vi.fn()
     renderLibrary({ onSelectTrack })
-    fireEvent.click(screen.getByRole('button', { name: /Halo/ }))
+    fireEvent.click(screen.getByRole('button', { name: /^Halo/ }))
     expect(onSelectTrack).toHaveBeenCalledWith('placeholder_b', 'placeholder_b_01')
   })
 
@@ -68,6 +70,15 @@ describe('Library', () => {
     renderLibrary({ onClose })
     fireEvent.click(screen.getByRole('button', { name: 'Close library' }))
     expect(onClose).toHaveBeenCalledTimes(1)
+  })
+
+  it('shows a filled star for favorited tracks and reports toggles', () => {
+    const onToggleFavorite = vi.fn()
+    renderLibrary({ favorites: ['cupsize_zppp'], onToggleFavorite })
+    expect(screen.getByRole('button', { name: 'Favorite ЗПППП' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('button', { name: 'Favorite Halo' })).toHaveAttribute('aria-pressed', 'false')
+    fireEvent.click(screen.getByRole('button', { name: 'Favorite Halo' }))
+    expect(onToggleFavorite).toHaveBeenCalledWith('placeholder_b_01')
   })
 
   it('calls onClose when Escape is pressed', () => {
