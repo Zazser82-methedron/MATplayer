@@ -9,6 +9,7 @@ const defaults = {
   uxMode: 'focus',
   audioBands: { bass: 0, mid: 0, treble: 0, level: 0 },
   particleVisibleCount: 2000,
+  degradationLevel: 0,
 }
 
 describe('usePlayerStore', () => {
@@ -40,5 +41,10 @@ describe('usePlayerStore', () => {
   it('setParticleVisibleCount updates particleVisibleCount', () => {
     usePlayerStore.getState().setParticleVisibleCount(500)
     expect(usePlayerStore.getState().particleVisibleCount).toBe(500)
+  })
+
+  it('setDegradationLevel updates degradationLevel', () => {
+    usePlayerStore.getState().setDegradationLevel(2)
+    expect(usePlayerStore.getState().degradationLevel).toBe(2)
   })
 })

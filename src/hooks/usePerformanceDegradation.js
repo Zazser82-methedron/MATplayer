@@ -22,6 +22,7 @@ export function usePerformanceDegradation() {
     if (nextLevelIndex !== levelIndexRef.current) {
       levelIndexRef.current = nextLevelIndex
       usePlayerStore.getState().setParticleVisibleCount(particleCountForLevel(nextLevelIndex))
+      usePlayerStore.getState().setDegradationLevel(nextLevelIndex)
     }
 
     const nextPixelRatio = pixelRatioForFps(avgFps, pixelRatioRef.current, maxPixelRatioRef.current)

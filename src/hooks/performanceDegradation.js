@@ -16,6 +16,14 @@ export function particleCountForLevel(levelIndex) {
   return PARTICLE_COUNTS_BY_LEVEL[levelIndex] ?? 0
 }
 
+export function isBloomEnabledAtLevel(levelIndex) {
+  return levelIndex < DEGRADATION_LEVELS.indexOf('no-bloom')
+}
+
+export function isPostFxEnabledAtLevel(levelIndex) {
+  return levelIndex < DEGRADATION_LEVELS.indexOf('no-postfx')
+}
+
 export function pixelRatioForFps(fps, currentPixelRatio, devicePixelRatio) {
   if (fps < 45 && currentPixelRatio > 1.0) return 1.0
   if (fps > 55 && currentPixelRatio < devicePixelRatio) {

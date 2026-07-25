@@ -6,6 +6,7 @@ import { ToonPostFX } from './ToonPostFX.jsx'
 import { computeCameraFlightPosition } from './cameraFlight.js'
 import { usePlayerStore } from '../store/usePlayerStore.js'
 import { useReducedMotion } from '../hooks/useReducedMotion.js'
+import { isBloomEnabledAtLevel, isPostFxEnabledAtLevel } from '../hooks/performanceDegradation.js'
 
 const FLIGHT_DURATION = 2.5
 
@@ -14,6 +15,7 @@ function ArtistIsland({ artist, isActive, track }) {
   // Callback-ref через useState, а не useRef: useRef не вызывает ре-рендер
   // при появлении меша, и GodRays так и остался бы с sun={null} навсегда.
   const [sunMesh, setSunMesh] = useState(null)
+  const degradationLevel = usePlayerStore((s) => s.degradationLevel)
 
   if (!isActive) {
     return (
@@ -46,6 +48,8 @@ function ArtistIsland({ artist, isActive, track }) {
         bloomIntensity={track.shader_presets.bloom_intensity}
         moodIsMelancholic={track.mood.startsWith('melancholic')}
         godRaysSource={sunMesh}
+        bloomEnabled={isBloomEnabledAtLevel(degradationLevel)}
+        postFxEnabled={isPostFxEnabledAtLevel(degradationLevel)}
       />
     </group>
   )
