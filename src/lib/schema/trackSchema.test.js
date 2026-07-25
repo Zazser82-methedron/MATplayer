@@ -35,3 +35,46 @@ describe('parseTrackProfile', () => {
     expect(() => parseTrackProfile(missingTempo)).toThrow()
   })
 })
+
+describe('optional future-facing blocks', () => {
+  it('still accepts every profile that ships today, with neither block present', () => {
+    expect(() => parseTrackProfile(validProfile)).not.toThrow()
+  })
+
+  it('accepts structure segments, stems and spectral peaks', () => {
+    expect(() =>
+      parseTrackProfile({
+        ...validProfile,
+        audio_analysis: {
+          structure_segments: [{ start: 0, end: 15.2, label: 'intro' }],
+          stem_urls: { drums: 'a/drums.mp3', vocals: 'a/vocals.mp3' },
+          spectral_centroid_peaks: [0.12, 0.45],
+        },
+      }),
+    ).not.toThrow()
+  })
+
+  it('rejects a segment whose end precedes its start', () => {
+    expect(() =>
+      parseTrackProfile({
+        ...validProfile,
+        audio_analysis: { structure_segments: [{ start: 10, end: 5, label: 'intro' }] },
+      }),
+    ).toThrow()
+  })
+
+  it('accepts an ai_adaptation block', () => {
+    expect(() =>
+      parseTrackProfile({
+        ...validProfile,
+        ai_adaptation: { facial_blendshape_weights: [0, 0.2, 0.8], generative_prompt_seed: 4294967295 },
+      }),
+    ).not.toThrow()
+  })
+
+  it('rejects a negative generative seed', () => {
+    expect(() =>
+      parseTrackProfile({ ...validProfile, ai_adaptation: { generative_prompt_seed: -1 } }),
+    ).toThrow()
+  })
+})

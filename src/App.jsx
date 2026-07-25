@@ -21,6 +21,7 @@ import { nextRepeatMode, computeNextIndex, buildShuffledOrder } from './lib/play
 import { parseDeepLink, buildDeepLinkSearch } from './lib/player/deepLink.js'
 import { analyzeTrack } from './lib/audio/analyzeTrack.js'
 import { SeekBar } from './ui/SeekBar.jsx'
+import { ArtistCard } from './ui/ArtistCard.jsx'
 
 const WAVEFORM_BUCKETS = 160
 
@@ -96,6 +97,7 @@ export default function App() {
   const [uiVolume, setUiVolume] = useState(1)
   const [isMuted, setIsMuted] = useState(false)
   const [isQueueOpen, setIsQueueOpen] = useState(false)
+  const [isArtistCardOpen, setIsArtistCardOpen] = useState(false)
   const [peaks, setPeaks] = useState([])
   const [duration, setDuration] = useState(0)
   // Подписка на целые секунды, а не на сырое currentTime: сырое значение
@@ -184,6 +186,9 @@ export default function App() {
   useSwipeGestures({
     onSwipeLeft: () => switchArtist(1),
     onSwipeRight: () => switchArtist(-1),
+    // Жест «вверх» распознавался classifySwipe с самого начала, но обработчик
+    // никто не передавал — экран дискографии из спека просто не открывался.
+    onSwipeUp: () => setIsArtistCardOpen(true),
     onDoubleTap: () => {
       const audioEl = audioRef.current
       if (!audioEl) return
@@ -366,6 +371,16 @@ export default function App() {
         }}
         isLibraryOpen={isLibraryOpen}
         onToggleLibrary={() => setIsLibraryOpen((open) => !open)}
+      />
+      <ArtistCard
+        artist={activeArtist}
+        tracks={libraryEntries.filter((e) => e.artistId === activeArtist.artist_id)}
+        isOpen={isArtistCardOpen}
+        onClose={() => setIsArtistCardOpen(false)}
+        onSelectTrack={(trackId) => {
+          usePlayerStore.getState().setTrack(trackId)
+          setIsArtistCardOpen(false)
+        }}
       />
       <QueuePanel
         entries={libraryEntries.filter((e) => e.artistId === activeArtist.artist_id)}

@@ -11,6 +11,7 @@ export const AtlasPositionSchema = z.object({
 export const ArtistProfileSchema = z.object({
   artist_id: z.string().min(1),
   name: z.string().min(1),
+  bio: z.string().optional(),
   default_palette: z.object({
     background: hexColor,
     primary: hexColor,

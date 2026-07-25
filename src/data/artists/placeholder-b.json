@@ -1,6 +1,7 @@
 {
   "artist_id": "placeholder_b",
   "name": "Demo Artist B",
+  "bio": "Демонстрационный артист: меланхоличный дрим-поп — ламинарный поток частиц, мягкий свет и god rays.",
   "default_palette": { "background": "#0f1420", "primary": "#a8c8ec" },
   "atlas_position": { "x": -20, "y": 0, "z": -10 },
   "track_ids": ["placeholder_b_01"]

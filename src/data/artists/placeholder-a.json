@@ -1,6 +1,7 @@
 {
   "artist_id": "placeholder_a",
   "name": "Demo Artist A",
+  "bio": "Демонстрационный артист: индустриальное агрессивное настроение — показывает рваные глитч-частицы и жёсткий контур.",
   "default_palette": { "background": "#050505", "primary": "#00e5ff" },
   "atlas_position": { "x": 20, "y": 0, "z": -10 },
   "track_ids": ["placeholder_a_01"]

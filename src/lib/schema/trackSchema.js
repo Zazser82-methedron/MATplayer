@@ -14,6 +14,31 @@ export const ShaderPresetsSchema = z.object({
   bloom_intensity: z.number().min(0).max(3),
 })
 
+export const StructureSegmentSchema = z
+  .object({
+    start: z.number().min(0),
+    end: z.number().min(0),
+    label: z.string().min(1),
+  })
+  .refine((segment) => segment.end >= segment.start, {
+    message: 'segment end must not precede its start',
+  })
+
+// Опциональный блок предвычисленного анализа. Заполняется будущим бэкендом
+// или пайплайном загрузки; при его отсутствии движок работает на обычном FFT
+// общего микса, как сейчас. Смысл stem_urls — развести источники по разным
+// визуальным элементам (вокал на мимику, барабаны на деформацию частиц).
+export const AudioAnalysisSchema = z.object({
+  structure_segments: z.array(StructureSegmentSchema).optional(),
+  stem_urls: z.record(z.string(), z.string().min(1)).optional(),
+  spectral_centroid_peaks: z.array(z.number()).optional(),
+})
+
+export const AiAdaptationSchema = z.object({
+  facial_blendshape_weights: z.array(z.number()).optional(),
+  generative_prompt_seed: z.number().int().nonnegative().optional(),
+})
+
 export const TrackProfileSchema = z.object({
   track_id: z.string().min(1),
   title: z.string().min(1).optional(),
@@ -24,6 +49,8 @@ export const TrackProfileSchema = z.object({
   shader_presets: ShaderPresetsSchema,
   lyrics_ref: z.string().min(1),
   audio_src: z.string().min(1),
+  audio_analysis: AudioAnalysisSchema.optional(),
+  ai_adaptation: AiAdaptationSchema.optional(),
 })
 
 export function parseTrackProfile(json) {
