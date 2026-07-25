@@ -617,7 +617,12 @@ import { dirname, join } from 'node:path'
 import { parseKaraokeBlock } from './lib/parseKaraokeBlock.mjs'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
-const SOURCE = join(__dirname, '../../games/cupsize-v2-story/karaoke.js')
+// Absolute, not relative: this is a one-off local migration script that reads from a
+// sibling project OUTSIDE this repo (on the same machine) and is never meant to run in
+// CI or on another machine. A relative path from __dirname would also silently break
+// depending on whether this repo is checked out normally or inside a git worktree
+// (different nesting depth), which a hardcoded absolute path avoids entirely.
+const SOURCE = 'C:/Users/exxck/Projects/games/cupsize-v2-story/karaoke.js'
 const OUT_DIR = join(__dirname, '../src/data/lyrics/cupsize')
 
 function loadKaraokeObject(sourcePath) {
