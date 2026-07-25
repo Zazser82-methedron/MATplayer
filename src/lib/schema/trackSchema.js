@@ -16,6 +16,7 @@ export const ShaderPresetsSchema = z.object({
 
 export const TrackProfileSchema = z.object({
   track_id: z.string().min(1),
+  title: z.string().min(1).optional(),
   tempo_bpm: z.number().positive(),
   energy: z.number().min(0).max(1),
   mood: z.string().min(1),
