@@ -6,9 +6,10 @@ import { usePlayerStore } from '../store/usePlayerStore.js'
 const FPS_SAMPLE_WINDOW = 30
 
 export function usePerformanceDegradation() {
-  const { gl } = useThree()
+  const { gl, setDpr } = useThree()
   const levelIndexRef = useRef(0)
-  const pixelRatioRef = useRef(typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1)
+  const pixelRatioRef = useRef(gl.getPixelRatio())
+  const maxPixelRatioRef = useRef(gl.getPixelRatio())
   const frameTimesRef = useRef([])
 
   useFrame((_, delta) => {
@@ -23,11 +24,10 @@ export function usePerformanceDegradation() {
       usePlayerStore.getState().setParticleVisibleCount(particleCountForLevel(nextLevelIndex))
     }
 
-    const devicePixelRatio = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1
-    const nextPixelRatio = pixelRatioForFps(avgFps, pixelRatioRef.current, devicePixelRatio)
+    const nextPixelRatio = pixelRatioForFps(avgFps, pixelRatioRef.current, maxPixelRatioRef.current)
     if (nextPixelRatio !== pixelRatioRef.current) {
       pixelRatioRef.current = nextPixelRatio
-      gl.setPixelRatio(nextPixelRatio)
+      setDpr(nextPixelRatio)
     }
   })
 }
