@@ -1445,7 +1445,7 @@ export function computeAudioTimeStep(bassLevel) {
 }
 
 export function computeCurlAmplitude(highLevel) {
-  return 0.8 + mapLinear(highLevel, 0, 0.6, -0.1, 0.2)
+  return 0.8 + mapLinear(highLevel, 0, 0.6, 0, 0.2)
 }
 ```
 
