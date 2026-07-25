@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { AvatarProxy } from './AvatarProxy.jsx'
 import { ParticleField } from './ParticleField.jsx'
@@ -11,6 +11,9 @@ const FLIGHT_DURATION = 2.5
 
 function ArtistIsland({ artist, isActive, track }) {
   const { x, y, z } = artist.atlas_position
+  // Callback-ref через useState, а не useRef: useRef не вызывает ре-рендер
+  // при появлении меша, и GodRays так и остался бы с sun={null} навсегда.
+  const [sunMesh, setSunMesh] = useState(null)
 
   if (!isActive) {
     return (
@@ -32,9 +35,17 @@ function ArtistIsland({ artist, isActive, track }) {
         outlineThickness={track.shader_presets.outline_thickness}
       />
       <ParticleField palette={track.color_palette} noiseType={track.shader_presets.noise_type} />
+      {/* Источник для God Rays: лучи расходятся от этого меша, поэтому он стоит
+          позади аватара — так они пробиваются из-за силуэта. Он должен быть
+          настоящим отрендеренным мешем, невидимый меш лучей не даёт. */}
+      <mesh ref={setSunMesh} position={[0, 1.2, -3]} name="godrays-sun">
+        <sphereGeometry args={[0.7, 24, 24]} />
+        <meshBasicMaterial color={track.color_palette.secondary} />
+      </mesh>
       <ToonPostFX
         bloomIntensity={track.shader_presets.bloom_intensity}
         moodIsMelancholic={track.mood.startsWith('melancholic')}
+        godRaysSource={sunMesh}
       />
     </group>
   )
