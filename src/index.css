@@ -138,6 +138,64 @@ body {
   border-color: rgba(255, 255, 255, 0.5);
 }
 
+.seek-bar {
+  position: absolute;
+  z-index: 9;
+  left: 50%;
+  bottom: 92px;
+  transform: translateX(-50%);
+  width: min(92vw, 560px);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  background: rgba(10, 10, 10, 0.55);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  color: #f2ede6;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.78rem;
+}
+
+.seek-bar__track {
+  position: relative;
+  flex: 1;
+  height: 34px;
+  display: block;
+}
+
+.seek-bar__peaks {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  pointer-events: none;
+}
+
+.seek-bar__peak {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.22);
+  border-radius: 1px;
+  min-height: 2px;
+}
+
+.seek-bar__peak[data-played='true'] {
+  background: rgba(255, 255, 255, 0.75);
+}
+
+.seek-bar__input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
 .queue-panel {
   position: absolute;
   z-index: 18;

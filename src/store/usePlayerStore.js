@@ -39,6 +39,7 @@ export const usePlayerStore = create(
       audioBands: { bass: 0, mid: 0, treble: 0, level: 0 },
       particleVisibleCount: 2000,
       degradationLevel: 0,
+      detectedBpm: null,
       repeatMode: 'off', // 'off' | 'all' | 'one'
       isShuffled: false,
       shuffledOrder: [],
@@ -53,6 +54,7 @@ export const usePlayerStore = create(
       setAudioBands: (bands) => set({ audioBands: bands }),
       setParticleVisibleCount: (count) => set({ particleVisibleCount: count }),
       setDegradationLevel: (levelIndex) => set({ degradationLevel: levelIndex }),
+      setDetectedBpm: (bpm) => set({ detectedBpm: bpm }),
       setRepeatMode: (mode) => set({ repeatMode: mode }),
       setShuffle: (isShuffled, shuffledOrder) => set({ isShuffled, shuffledOrder }),
       toggleFavorite: (trackId) => set((state) => ({ favorites: toggleFavorite(state.favorites, trackId) })),

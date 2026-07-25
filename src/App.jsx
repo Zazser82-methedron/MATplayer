@@ -19,6 +19,12 @@ import { uiVolumeToGain, clampVolume } from './lib/player/volume.js'
 import { QueuePanel } from './ui/QueuePanel.jsx'
 import { nextRepeatMode, computeNextIndex, buildShuffledOrder } from './lib/player/queue.js'
 import { parseDeepLink, buildDeepLinkSearch } from './lib/player/deepLink.js'
+import { loadAudioBuffer } from './lib/audio/loadAudioBuffer.js'
+import { detectBpm } from './lib/audio/beatDetector.js'
+import { computeWaveformPeaks } from './lib/audio/waveform.js'
+import { SeekBar } from './ui/SeekBar.jsx'
+
+const WAVEFORM_BUCKETS = 160
 
 const DEFAULT_ARTIST_ID = 'cupsize'
 const DEFAULT_TRACK_ID = 'cupsize_zppp'
@@ -92,6 +98,10 @@ export default function App() {
   const [uiVolume, setUiVolume] = useState(1)
   const [isMuted, setIsMuted] = useState(false)
   const [isQueueOpen, setIsQueueOpen] = useState(false)
+  const [peaks, setPeaks] = useState([])
+  const [duration, setDuration] = useState(0)
+  const currentTime = usePlayerStore((s) => s.currentTime)
+  const uxMode = usePlayerStore((s) => s.uxMode)
   const repeatMode = usePlayerStore((s) => s.repeatMode)
   const isShuffled = usePlayerStore((s) => s.isShuffled)
   const favorites = usePlayerStore((s) => s.favorites)
@@ -224,6 +234,46 @@ export default function App() {
     usePlayerStore.getState().recordPlay(activeTrack.track_id)
   }, [currentTrackId, activeTrack.audio_src, activeTrack.track_id])
 
+  // Один декод файла закрывает сразу две задачи: BPM для пульсаций и пики
+  // для waveform. Воспроизведение остаётся на <audio> ради нативного
+  // стриминга, поэтому файл скачивается вторично — осознанный размен, полный
+  // переход на AudioBufferSourceNode стоил бы прогрессивного воспроизведения.
+  // Анализ необязателен: при сбое остаётся tempo_bpm из профиля трека.
+  const audioSrc = currentTrackId ? `${import.meta.env.BASE_URL}audio/${activeTrack.audio_src}` : null
+  useEffect(() => {
+    let cancelled = false
+    usePlayerStore.getState().setDetectedBpm(activeTrack.tempo_bpm ?? null)
+    setPeaks([])
+    if (!audioSrc) return undefined
+
+    const context = audioRef.current?.__matplayerContext
+    if (!context) return undefined
+
+    loadAudioBuffer(audioSrc, context)
+      .then((buffer) => {
+        if (!cancelled) setPeaks(computeWaveformPeaks(buffer.getChannelData(0), WAVEFORM_BUCKETS))
+        return detectBpm(buffer)
+      })
+      .then((bpm) => {
+        if (!cancelled) usePlayerStore.getState().setDetectedBpm(bpm)
+      })
+      .catch(() => {
+        // Профильный tempo_bpm уже выставлен выше — этого достаточно.
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [audioSrc, activeTrack.tempo_bpm])
+
+  useEffect(() => {
+    const audioEl = audioRef.current
+    if (!audioEl) return undefined
+    const readDuration = () => setDuration(audioEl.duration || 0)
+    audioEl.addEventListener('loadedmetadata', readDuration)
+    return () => audioEl.removeEventListener('loadedmetadata', readDuration)
+  }, [])
+
   // Громкость применяется через перцептивную кривую и переживает смену трека:
   // audioEl.load() сбрасывает не всё, а состояние mute живёт только здесь.
   useEffect(() => {
@@ -241,12 +291,7 @@ export default function App() {
       {/* src не выставляется, пока трек не выбран — иначе браузер начинает
           качать дефолтный mp3 ещё до того, как отработает разбор deep-link,
           и тут же бросает закачку. */}
-      <audio
-        ref={audioRef}
-        src={currentTrackId ? `${import.meta.env.BASE_URL}audio/${activeTrack.audio_src}` : undefined}
-        autoPlay
-        crossOrigin="anonymous"
-      />
+      <audio ref={audioRef} src={audioSrc ?? undefined} autoPlay crossOrigin="anonymous" />
       <Canvas
         camera={{ position: [cameraPosition.x, cameraPosition.y, cameraPosition.z], fov: 50 }}
         onCreated={() => {
@@ -261,6 +306,16 @@ export default function App() {
         reducedMotion={reducedMotion}
         textColor={pickReadableTextColor(activeTrack.color_palette.background)}
       />
+      {uxMode === 'utility' && (
+        <SeekBar
+          currentTime={currentTime}
+          duration={duration}
+          peaks={peaks}
+          onSeek={(time) => {
+            if (audioRef.current) audioRef.current.currentTime = time
+          }}
+        />
+      )}
       <PlayerControls
         artistName={activeArtist.name}
         trackTitle={activeTrack.title ?? ''}

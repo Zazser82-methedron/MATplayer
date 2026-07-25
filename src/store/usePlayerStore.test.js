@@ -10,6 +10,7 @@ const defaults = {
   audioBands: { bass: 0, mid: 0, treble: 0, level: 0 },
   particleVisibleCount: 2000,
   degradationLevel: 0,
+  detectedBpm: null,
   repeatMode: 'off',
   isShuffled: false,
   shuffledOrder: [],

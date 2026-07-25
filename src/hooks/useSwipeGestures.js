@@ -7,7 +7,7 @@ export function useSwipeGestures({ onSwipeLeft, onSwipeRight, onSwipeUp, onDoubl
 
   useEffect(() => {
     function handleTouchStart(event) {
-      if (event.target.closest?.('.player-controls, .library-panel, .queue-panel')) return
+      if (event.target.closest?.('.player-controls, .library-panel, .queue-panel, .seek-bar')) return
       if (!event.touches.length) return
       const touch = event.touches[0]
       touchStartRef.current = { x: touch.clientX, y: touch.clientY }

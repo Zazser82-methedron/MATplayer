@@ -2,6 +2,8 @@ import { useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { computeBreathScale, computeBlinkScale } from './avatarMotion.js'
+import { usePlayerStore } from '../store/usePlayerStore.js'
+import { computeBeatPulse } from '../lib/audio/beatPulse.js'
 
 // Трёхступенчатая рампа освещения для meshToonMaterial. NearestFilter
 // обязателен: с линейной фильтрацией ступени размываются обратно в
@@ -28,7 +30,11 @@ export function AvatarProxy({ palette, energy = 0.5, outlineThickness = 0.05 }) 
     const t = state.clock.elapsedTime
     const breath = computeBreathScale(t, energy)
     const blink = computeBlinkScale(t)
-    if (breathGroupRef.current) breathGroupRef.current.scale.set(1, breath, 1)
+    // Транзиентное чтение: currentTime и detectedBpm меняются каждый кадр,
+    // подписка через хук вызывала бы ре-рендер React на 60 fps.
+    const { currentTime, detectedBpm } = usePlayerStore.getState()
+    const pulse = computeBeatPulse(currentTime, detectedBpm) * 0.06
+    if (breathGroupRef.current) breathGroupRef.current.scale.set(1 + pulse, breath + pulse, 1 + pulse)
     if (leftEyeRef.current) leftEyeRef.current.scale.y = blink
     if (rightEyeRef.current) rightEyeRef.current.scale.y = blink
   })
