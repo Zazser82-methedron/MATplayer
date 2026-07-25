@@ -18,6 +18,7 @@ import { pickReadableTextColor } from './lib/color/contrast.js'
 import { uiVolumeToGain, clampVolume } from './lib/player/volume.js'
 import { QueuePanel } from './ui/QueuePanel.jsx'
 import { nextRepeatMode, computeNextIndex, buildShuffledOrder } from './lib/player/queue.js'
+import { parseDeepLink, buildDeepLinkSearch } from './lib/player/deepLink.js'
 
 const DEFAULT_ARTIST_ID = 'cupsize'
 const DEFAULT_TRACK_ID = 'cupsize_zppp'
@@ -80,9 +81,31 @@ export default function App() {
 
   const libraryEntries = useMemo(() => buildLibraryEntries(ARTISTS, TRACKS_BY_ID), [])
 
+  // Стартовое состояние: из deep-link, если он валиден, иначе дефолт.
+  // Тайм-код применяется отдельно, в обработчике loadedmetadata — до
+  // загрузки метаданных установка currentTime молча игнорируется браузером.
+  const pendingStartTimeRef = useRef(null)
+
   useEffect(() => {
-    usePlayerStore.getState().setArtist(DEFAULT_ARTIST_ID)
-    usePlayerStore.getState().setTrack(DEFAULT_TRACK_ID)
+    const { artistId, trackId, startTime } = parseDeepLink(window.location.search)
+    const artistExists = ARTISTS.some((a) => a.artist_id === artistId)
+    const trackExists = Boolean(TRACKS_BY_ID[trackId])
+    usePlayerStore.getState().setArtist(artistExists ? artistId : DEFAULT_ARTIST_ID)
+    usePlayerStore.getState().setTrack(trackExists ? trackId : DEFAULT_TRACK_ID)
+    pendingStartTimeRef.current = trackExists ? startTime : null
+  }, [])
+
+  useEffect(() => {
+    const audioEl = audioRef.current
+    if (!audioEl) return undefined
+    const applyStartTime = () => {
+      if (pendingStartTimeRef.current !== null) {
+        audioEl.currentTime = pendingStartTimeRef.current
+        pendingStartTimeRef.current = null
+      }
+    }
+    audioEl.addEventListener('loadedmetadata', applyStartTime)
+    return () => audioEl.removeEventListener('loadedmetadata', applyStartTime)
   }, [])
 
   useEffect(() => {
@@ -224,6 +247,14 @@ export default function App() {
         }}
         isQueueOpen={isQueueOpen}
         onToggleQueue={() => setIsQueueOpen((open) => !open)}
+        onShare={() => {
+          const search = buildDeepLinkSearch(
+            activeArtist.artist_id,
+            activeTrack.track_id,
+            audioRef.current?.currentTime ?? 0,
+          )
+          navigator.clipboard?.writeText(`${window.location.origin}${window.location.pathname}${search}`)
+        }}
         isLibraryOpen={isLibraryOpen}
         onToggleLibrary={() => setIsLibraryOpen((open) => !open)}
       />

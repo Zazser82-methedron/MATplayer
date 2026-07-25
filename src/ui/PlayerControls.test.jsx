@@ -26,6 +26,7 @@ function renderControls(overrides = {}) {
       onToggleShuffle={noop}
       isQueueOpen={false}
       onToggleQueue={noop}
+      onShare={noop}
       {...overrides}
     />,
   )

@@ -21,6 +21,7 @@ export function PlayerControls({
   onToggleShuffle,
   isQueueOpen,
   onToggleQueue,
+  onShare,
 }) {
   const uxMode = usePlayerStore((s) => s.uxMode)
 
@@ -59,6 +60,9 @@ export function PlayerControls({
         onChange={onVolumeChange}
         onToggleMute={onToggleMute}
       />
+      <button type="button" onClick={onShare} aria-label="Copy link to this moment">
+        🔗
+      </button>
       <button type="button" onClick={onToggleLibrary} aria-pressed={isLibraryOpen}>
         Library
       </button>
