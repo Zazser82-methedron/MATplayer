@@ -7,6 +7,7 @@ export function useSwipeGestures({ onSwipeLeft, onSwipeRight, onSwipeUp, onDoubl
 
   useEffect(() => {
     function handleTouchStart(event) {
+      if (!event.touches.length) return
       const touch = event.touches[0]
       touchStartRef.current = { x: touch.clientX, y: touch.clientY }
     }
@@ -14,6 +15,7 @@ export function useSwipeGestures({ onSwipeLeft, onSwipeRight, onSwipeUp, onDoubl
     function handleTouchEnd(event) {
       const start = touchStartRef.current
       if (!start) return
+      if (!event.changedTouches.length) return
       const touch = event.changedTouches[0]
       const direction = classifySwipe(start.x, start.y, touch.clientX, touch.clientY)
       const now = performance.now()
@@ -22,8 +24,12 @@ export function useSwipeGestures({ onSwipeLeft, onSwipeRight, onSwipeUp, onDoubl
       else if (direction === 'right') onSwipeRight?.()
       else if (direction === 'up') onSwipeUp?.()
       else if (direction === 'tap') {
-        if (isDoubleTap(lastTapTimeRef.current, now)) onDoubleTap?.()
-        lastTapTimeRef.current = now
+        if (isDoubleTap(lastTapTimeRef.current, now)) {
+          onDoubleTap?.()
+          lastTapTimeRef.current = null
+        } else {
+          lastTapTimeRef.current = now
+        }
       }
 
       touchStartRef.current = null

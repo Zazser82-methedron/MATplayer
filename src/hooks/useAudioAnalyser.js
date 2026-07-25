@@ -15,6 +15,7 @@ export function useAudioAnalyser(audioElementRef) {
 
     const tick = () => {
       usePlayerStore.getState().setAudioBands(engine.getFrequencyBands())
+      usePlayerStore.getState().setTime(audioEl.currentTime)
       rafId = requestAnimationFrame(tick)
     }
     tick()
