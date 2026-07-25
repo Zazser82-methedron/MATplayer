@@ -369,18 +369,25 @@ body {
   appearance: none;
   width: 100%;
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: 22px 1fr auto;
+  align-items: center;
   column-gap: 10px;
-  row-gap: 2px;
   text-align: left;
   border: 1px solid transparent;
   background: transparent;
   color: inherit;
-  padding: 10px 12px;
-  border-radius: 12px;
+  padding: 9px 12px;
+  border-radius: 10px;
   font-family: inherit;
   cursor: pointer;
   transition: background 0.15s ease;
+}
+
+.library-panel__index {
+  font-size: 0.78rem;
+  color: rgba(242, 237, 230, 0.4);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
 }
 
 .library-panel__row:hover {
@@ -425,15 +432,7 @@ body {
   white-space: nowrap;
 }
 
-.library-panel__artist {
-  grid-row: 2;
-  font-size: 0.82rem;
-  color: rgba(242, 237, 230, 0.65);
-}
-
 .library-panel__mood {
-  grid-row: 1 / span 2;
-  align-self: center;
   font-size: 0.75rem;
   color: rgba(242, 237, 230, 0.5);
   white-space: nowrap;

@@ -53,7 +53,7 @@ export function Library({
               </div>
             )}
             <ul className="library-panel__list library-panel__list--nested">
-              {group.entries.map((entry) => {
+              {group.entries.map((entry, index) => {
                 const isActive = entry.artistId === activeArtistId && entry.trackId === activeTrackId
                 return (
                   <li key={entry.trackId} className="library-panel__item">
@@ -63,8 +63,11 @@ export function Library({
                       aria-current={isActive ? 'true' : undefined}
                       onClick={() => onSelectTrack(entry.artistId, entry.trackId)}
                     >
+                      {/* Внутри альбома показываем номер, а не имя артиста:
+                          оно уже стоит в заголовке группы и повторять его
+                          в каждой строке — лишний шум. */}
+                      <span className="library-panel__index">{group.albumTitle ? index + 1 : ''}</span>
                       <span className="library-panel__title">{entry.title}</span>
-                      <span className="library-panel__artist">{entry.artistName}</span>
                       <span className="library-panel__mood">{formatMood(entry.mood)}</span>
                     </button>
                     <button
