@@ -1206,7 +1206,7 @@ Expected: FAIL — content JSON files don't exist yet
 }
 ```
 
-Note: `placeholder-a/track-01.json` and `placeholder-b/track-01.json` under `src/data/lyrics/` (the `lyrics_ref` targets) still need a minimal 2-3 line synthetic lyrics file each, matching the `{ lines: [{time, text}] }` shape from Task 3 — create these now too, e.g. `[{"time": 0, "text": "demo line one"}, {"time": 4, "text": "demo line two"}]`, since Step 1's test only validates schemas, not that `lyrics_ref` files resolve — that cross-check is added explicitly in Task 16 once the atlas actually loads lyrics per track.
+Note: `placeholder-a/track-01.json` and `placeholder-b/track-01.json` under `src/data/lyrics/` (the `lyrics_ref` targets) don't exist yet at the end of this task — that's expected, not a gap. Do NOT create them here. Task 16 (Step 1) creates both files and adds the resolution test that cross-checks every `lyrics_ref` actually resolves; this task's own test (Step 1 above) intentionally validates schemas only. Creating them here too would just duplicate/conflict with Task 16's authorship of those exact two files.
 
 - [ ] **Step 8: Run test, verify it passes**
 
