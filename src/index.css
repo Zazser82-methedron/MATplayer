@@ -29,6 +29,14 @@ body {
   height: 100% !important;
 }
 
+/* В ambient-режиме интерфейса на экране нет — курсор должен уходить вместе с
+   ним, иначе поверх «чистой» сцены остаётся висеть одна стрелка. Возвращается
+   сам: любое движение мыши переводит режим обратно. */
+html[data-matplayer-ux='ambient'],
+html[data-matplayer-ux='ambient'] #matplayer-root {
+  cursor: none;
+}
+
 .lyrics-overlay {
   position: absolute;
   left: 50%;
