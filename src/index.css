@@ -264,18 +264,21 @@ html[data-matplayer-ux='ambient'] #matplayer-root {
 .queue-panel {
   position: absolute;
   z-index: 18;
-  right: 20px;
-  bottom: 92px;
+  right: var(--space-4);
+  /* Было 92px — рассчитано под старую пару плавающих панелей (seek-bar +
+     player-bar). После их слияния в одну, более высокую панель это
+     значение пересчитано, чтобы очередь не наезжала на неё. */
+  bottom: 150px;
   width: min(88vw, 320px);
   max-height: 46vh;
   display: flex;
   flex-direction: column;
-  background: rgba(10, 10, 10, 0.82);
-  -webkit-backdrop-filter: blur(20px);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 16px;
-  color: #f2ede6;
+  background: var(--surface-solid);
+  -webkit-backdrop-filter: blur(var(--blur-modal));
+  backdrop-filter: blur(var(--blur-modal));
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--ink);
   overflow: hidden;
 }
 
@@ -283,9 +286,9 @@ html[data-matplayer-ux='ambient'] #matplayer-root {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 14px;
+  padding: var(--space-3) var(--space-4);
   font-weight: 600;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid var(--border);
 }
 
 .queue-panel__header button {
@@ -294,13 +297,21 @@ html[data-matplayer-ux='ambient'] #matplayer-root {
   background: transparent;
   color: inherit;
   cursor: pointer;
-  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-1);
+}
+
+.queue-panel__header button svg {
+  width: 16px;
+  height: 16px;
 }
 
 .queue-panel__list {
   list-style: none;
   margin: 0;
-  padding: 6px;
+  padding: var(--space-1);
   overflow-y: auto;
 }
 
@@ -315,24 +326,24 @@ html[data-matplayer-ux='ambient'] #matplayer-root {
   border: 1px solid transparent;
   background: transparent;
   color: inherit;
-  padding: 8px 10px;
-  border-radius: 10px;
+  padding: var(--space-2);
+  border-radius: var(--radius-sm);
   font-family: inherit;
   cursor: pointer;
 }
 
 .queue-panel__row:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--hover-overlay);
 }
 
 .queue-panel__row[aria-current='true'] {
   background: rgba(255, 255, 255, 0.16);
-  border-color: rgba(255, 255, 255, 0.3);
+  border-color: var(--border-strong);
 }
 
 .queue-panel__artist {
-  font-size: 0.78rem;
-  color: rgba(242, 237, 230, 0.65);
+  font: var(--text-sm);
+  color: var(--ink-muted);
 }
 
 .library-panel {

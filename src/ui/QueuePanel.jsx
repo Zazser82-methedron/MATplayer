@@ -1,3 +1,5 @@
+import { IconClose } from './icons.jsx'
+
 export function QueuePanel({ entries, isOpen, activeTrackId, onSelect, onClose }) {
   if (!isOpen) return null
 
@@ -6,7 +8,7 @@ export function QueuePanel({ entries, isOpen, activeTrackId, onSelect, onClose }
       <div className="queue-panel__header">
         <span>Up next</span>
         <button type="button" onClick={onClose} aria-label="Close queue">
-          ✕
+          <IconClose />
         </button>
       </div>
       <ol className="queue-panel__list">
