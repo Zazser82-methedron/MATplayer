@@ -1,8 +1,10 @@
+import { IconMute, IconVolume } from './icons.jsx'
+
 export function VolumeControl({ uiVolume, isMuted, onChange, onToggleMute }) {
   return (
     <span className="volume-control">
       <button type="button" onClick={onToggleMute} aria-pressed={isMuted} aria-label="Mute">
-        {isMuted ? '🔇' : '🔊'}
+        {isMuted ? <IconMute /> : <IconVolume />}
       </button>
       <input
         type="range"

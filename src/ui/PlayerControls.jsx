@@ -1,10 +1,26 @@
 import { useEffect, useRef, useState } from 'react'
 import { usePlayerStore } from '../store/usePlayerStore.js'
+import { SeekBar } from './SeekBar.jsx'
+import { VolumeControl } from './VolumeControl.jsx'
+import {
+  IconPlay,
+  IconPause,
+  IconPrev,
+  IconNext,
+  IconStar,
+  IconMore,
+  IconShuffle,
+  IconRepeat,
+  IconQueue,
+  IconLink,
+} from './icons.jsx'
 
-// На виду только то, что нажимают постоянно: play, переключение трека и
-// избранное. Остальное (очередь, shuffle, repeat, громкость, шеринг,
-// библиотека) уходит под «…» — так устроены все крупные плееры, и именно
-// из-за девяти кнопок в ряд панель выглядела кашей.
+// На виду только то, что нажимают постоянно: прогресс, play, переключение
+// трека и избранное. Остальное (очередь, shuffle, repeat, громкость, шеринг,
+// библиотека) уходит под «…» — так устроены все крупные плееры. Шкала
+// прогресса раньше была отдельной плавающей капсулой над этой панелью; ни
+// один референсный плеер так не делает — теперь это первая строка той же
+// панели.
 export function PlayerControls({
   artistName,
   albumTitle,
@@ -27,6 +43,10 @@ export function PlayerControls({
   isMuted,
   onVolumeChange,
   onToggleMute,
+  currentTime,
+  duration,
+  peaks,
+  onSeek,
 }) {
   const uxMode = usePlayerStore((s) => s.uxMode)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -52,96 +72,88 @@ export function PlayerControls({
 
   return (
     <div className="player-bar" role="toolbar" aria-label="Player controls">
-      <div className="player-bar__meta">
-        <span className="player-bar__track">{trackTitle}</span>
-        <span className="player-bar__sub">
-          {artistName}
-          {albumTitle ? ` · ${albumTitle}` : ''}
-        </span>
-      </div>
+      <SeekBar currentTime={currentTime} duration={duration} peaks={peaks} onSeek={onSeek} />
 
-      <div className="player-bar__transport">
-        <button type="button" className="player-bar__icon" onClick={onPrevTrack} aria-label="Previous track">
-          ⏮
-        </button>
-        <button
-          type="button"
-          className="player-bar__play"
-          onClick={onTogglePlay}
-          aria-label={isPlaying ? 'Pause' : 'Play'}
-        >
-          {isPlaying ? '❚❚' : '▶'}
-        </button>
-        <button type="button" className="player-bar__icon" onClick={onNextTrack} aria-label="Next track">
-          ⏭
-        </button>
-      </div>
+      <div className="player-bar__row">
+        <div className="player-bar__meta">
+          <span className="player-bar__track">{trackTitle}</span>
+          <span className="player-bar__sub">
+            {artistName}
+            {albumTitle ? ` · ${albumTitle}` : ''}
+          </span>
+        </div>
 
-      <div className="player-bar__end" ref={menuRef}>
-        <button
-          type="button"
-          className="player-bar__icon player-bar__fav"
-          onClick={onToggleFavorite}
-          aria-pressed={isFavorite}
-          aria-label="Favorite this track"
-        >
-          {isFavorite ? '★' : '☆'}
-        </button>
-        <button
-          type="button"
-          className="player-bar__icon"
-          onClick={() => setIsMenuOpen((open) => !open)}
-          aria-expanded={isMenuOpen}
-          aria-label="More controls"
-        >
-          ⋯
-        </button>
+        <div className="player-bar__transport">
+          <button type="button" className="player-bar__icon" onClick={onPrevTrack} aria-label="Previous track">
+            <IconPrev />
+          </button>
+          <button
+            type="button"
+            className="player-bar__play"
+            onClick={onTogglePlay}
+            aria-label={isPlaying ? 'Pause' : 'Play'}
+          >
+            {isPlaying ? <IconPause /> : <IconPlay />}
+          </button>
+          <button type="button" className="player-bar__icon" onClick={onNextTrack} aria-label="Next track">
+            <IconNext />
+          </button>
+        </div>
 
-        {isMenuOpen && (
-          <div className="player-menu" role="menu">
-            <button type="button" role="menuitem" onClick={() => { onOpenLibrary(); setIsMenuOpen(false) }}>
-              Библиотека
-            </button>
-            <button type="button" role="menuitem" onClick={() => { onOpenQueue(); setIsMenuOpen(false) }}>
-              Очередь
-            </button>
-            <button type="button" role="menuitem" onClick={() => { onNextArtist(); setIsMenuOpen(false) }}>
-              Другой исполнитель
-            </button>
-            <div className="player-menu__separator" />
-            <button type="button" role="menuitem" onClick={onToggleShuffle} aria-pressed={isShuffled}>
-              Перемешать{isShuffled ? ' ✓' : ''}
-            </button>
-            <button type="button" role="menuitem" onClick={onCycleRepeat}>
-              Повтор: {{ off: 'выкл', all: 'все', one: 'один' }[repeatMode]}
-            </button>
-            <div className="player-menu__separator" />
-            <label className="player-menu__volume">
-              <button
-                type="button"
-                onClick={onToggleMute}
-                aria-pressed={isMuted}
-                aria-label="Mute"
-                className="player-menu__mute"
-              >
-                {isMuted ? '🔇' : '🔊'}
+        <div className="player-bar__end" ref={menuRef}>
+          <button
+            type="button"
+            className="player-bar__icon player-bar__fav"
+            onClick={onToggleFavorite}
+            aria-pressed={isFavorite}
+            aria-label="Favorite this track"
+          >
+            <IconStar filled={isFavorite} />
+          </button>
+          <button
+            type="button"
+            className="player-bar__icon"
+            onClick={() => setIsMenuOpen((open) => !open)}
+            aria-expanded={isMenuOpen}
+            aria-label="More controls"
+          >
+            <IconMore />
+          </button>
+
+          {isMenuOpen && (
+            <div className="player-menu" role="menu">
+              <button type="button" role="menuitem" onClick={() => { onOpenLibrary(); setIsMenuOpen(false) }}>
+                Библиотека
               </button>
-              <input
-                type="range"
-                min="0"
-                max="1"
-                step="0.01"
-                value={uiVolume}
-                onChange={(event) => onVolumeChange(Number(event.target.value))}
-                aria-label="Volume"
-              />
-            </label>
-            <div className="player-menu__separator" />
-            <button type="button" role="menuitem" onClick={() => { onShare(); setIsMenuOpen(false) }}>
-              Скопировать ссылку
-            </button>
-          </div>
-        )}
+              <button type="button" role="menuitem" onClick={() => { onOpenQueue(); setIsMenuOpen(false) }}>
+                <IconQueue /> Очередь
+              </button>
+              <button type="button" role="menuitem" onClick={() => { onNextArtist(); setIsMenuOpen(false) }}>
+                Другой исполнитель
+              </button>
+              <div className="player-menu__separator" />
+              <button type="button" role="menuitem" onClick={onToggleShuffle} aria-pressed={isShuffled}>
+                <IconShuffle /> Перемешать{isShuffled ? ' ✓' : ''}
+              </button>
+              <button type="button" role="menuitem" onClick={onCycleRepeat}>
+                <IconRepeat mode={repeatMode} /> Повтор: {{ off: 'выкл', all: 'все', one: 'один' }[repeatMode]}
+              </button>
+              <div className="player-menu__separator" />
+              <div className="player-menu__volume">
+                <VolumeControl
+                  uiVolume={uiVolume}
+                  isMuted={isMuted}
+                  onChange={onVolumeChange}
+                  onToggleMute={onToggleMute}
+                />
+              </div>
+              <div className="player-menu__separator" />
+              <button type="button" role="menuitem" onClick={() => { onShare(); setIsMenuOpen(false) }}>
+                <IconLink /> Скопировать ссылку
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )

@@ -28,6 +28,10 @@ function renderControls(overrides = {}) {
       isMuted={false}
       onVolumeChange={noop}
       onToggleMute={noop}
+      currentTime={30}
+      duration={180}
+      peaks={[]}
+      onSeek={noop}
       {...overrides}
     />,
   )
@@ -66,6 +70,12 @@ describe('PlayerControls', () => {
     expect(screen.getByRole('button', { name: 'More controls' })).toBeInTheDocument()
     expect(screen.queryByRole('menu')).toBeNull()
     expect(screen.queryByRole('button', { name: /Библиотека/ })).toBeNull()
+  })
+
+  it('shows the seek bar inside the same panel, not as a separate floating one', () => {
+    renderControls()
+    const slider = screen.getByRole('slider', { name: 'Seek' })
+    expect(screen.getByRole('toolbar', { name: 'Player controls' })).toContainElement(slider)
   })
 
   it('reveals the secondary controls only after opening the overflow menu', () => {
@@ -125,5 +135,13 @@ describe('PlayerControls', () => {
     fireEvent.click(screen.getByRole('button', { name: 'More controls' }))
     fireEvent.keyDown(window, { key: 'Escape' })
     expect(screen.queryByRole('menu')).toBeNull()
+  })
+
+  it('reports volume changes through the real VolumeControl inside the menu', () => {
+    const onVolumeChange = vi.fn()
+    renderControls({ onVolumeChange })
+    fireEvent.click(screen.getByRole('button', { name: 'More controls' }))
+    fireEvent.change(screen.getByRole('slider', { name: 'Volume' }), { target: { value: '0.4' } })
+    expect(onVolumeChange).toHaveBeenCalledWith(0.4)
   })
 })
