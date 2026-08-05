@@ -127,13 +127,13 @@ html[data-matplayer-ux='ambient'] #matplayer-root {
   max-height: 82vh;
   display: flex;
   flex-direction: column;
-  padding: 18px 18px 24px;
-  background: rgba(10, 10, 10, 0.9);
-  -webkit-backdrop-filter: blur(22px);
-  backdrop-filter: blur(22px);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 22px 22px 0 0;
-  color: #f2ede6;
+  padding: var(--space-4) var(--space-4) var(--space-6);
+  background: var(--surface-solid);
+  -webkit-backdrop-filter: blur(var(--blur-modal));
+  backdrop-filter: blur(var(--blur-modal));
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  color: var(--ink);
   overflow: hidden;
 }
 
@@ -141,36 +141,44 @@ html[data-matplayer-ux='ambient'] #matplayer-root {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: var(--space-3);
 }
 
 .artist-card__header button {
   appearance: none;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border-strong);
+  background: var(--hover-overlay);
   color: inherit;
   width: 34px;
   height: 34px;
   flex-shrink: 0;
   border-radius: 50%;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.artist-card__header button svg {
+  width: 16px;
+  height: 16px;
 }
 
 .artist-card__name {
   margin: 0;
-  font-size: 1.4rem;
+  font: var(--text-2xl);
 }
 
 .artist-card__bio {
-  margin: 10px 0 0;
-  color: rgba(242, 237, 230, 0.8);
+  margin: var(--space-3) 0 0;
+  color: var(--ink-muted);
   line-height: 1.5;
 }
 
 .artist-card__count {
-  margin: 14px 0 6px;
-  font-size: 0.8rem;
-  color: rgba(242, 237, 230, 0.55);
+  margin: var(--space-4) 0 var(--space-2);
+  font: var(--text-sm);
+  color: var(--ink-faint);
 }
 
 .artist-card__list {
@@ -186,24 +194,24 @@ html[data-matplayer-ux='ambient'] #matplayer-root {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: var(--space-3);
   text-align: left;
   border: none;
   background: transparent;
   color: inherit;
-  padding: 10px 8px;
-  border-radius: 10px;
+  padding: var(--space-2);
+  border-radius: var(--radius-sm);
   font-family: inherit;
   cursor: pointer;
 }
 
 .artist-card__row:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--hover-overlay);
 }
 
 .artist-card__mood {
-  font-size: 0.75rem;
-  color: rgba(242, 237, 230, 0.5);
+  font: var(--text-sm);
+  color: var(--ink-faint);
   white-space: nowrap;
 }
 

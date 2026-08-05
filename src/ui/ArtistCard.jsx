@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { formatMood } from '../lib/library/buildLibrary.js'
+import { IconClose } from './icons.jsx'
 
 export function ArtistCard({ artist, tracks, isOpen, onClose, onSelectTrack }) {
   useEffect(() => {
@@ -18,7 +19,7 @@ export function ArtistCard({ artist, tracks, isOpen, onClose, onSelectTrack }) {
       <div className="artist-card__header">
         <h2 className="artist-card__name">{artist.name}</h2>
         <button type="button" onClick={onClose} aria-label="Close artist card">
-          ✕
+          <IconClose />
         </button>
       </div>
       {artist.bio && <p className="artist-card__bio">{artist.bio}</p>}
