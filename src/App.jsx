@@ -20,7 +20,6 @@ import { QueuePanel } from './ui/QueuePanel.jsx'
 import { nextRepeatMode, computeNextIndex, buildShuffledOrder } from './lib/player/queue.js'
 import { parseDeepLink, buildDeepLinkSearch } from './lib/player/deepLink.js'
 import { analyzeTrack } from './lib/audio/analyzeTrack.js'
-import { SeekBar } from './ui/SeekBar.jsx'
 import { ArtistCard } from './ui/ArtistCard.jsx'
 
 const WAVEFORM_BUCKETS = 160
@@ -106,7 +105,6 @@ export default function App() {
   // показывает мм:сс, а одна полоска waveform покрывает почти секунду —
   // разницы на глаз нет.
   const currentSecond = usePlayerStore((s) => Math.floor(s.currentTime))
-  const uxMode = usePlayerStore((s) => s.uxMode)
   const repeatMode = usePlayerStore((s) => s.repeatMode)
   const isShuffled = usePlayerStore((s) => s.isShuffled)
   const favorites = usePlayerStore((s) => s.favorites)
@@ -327,22 +325,18 @@ export default function App() {
         reducedMotion={reducedMotion}
         textColor={pickReadableTextColor(activeTrack.color_palette.background)}
       />
-      {uxMode === 'utility' && (
-        <SeekBar
-          currentTime={currentSecond}
-          duration={duration}
-          peaks={peaks}
-          onSeek={(time) => {
-            if (audioRef.current) audioRef.current.currentTime = time
-          }}
-        />
-      )}
       <PlayerControls
         artistName={activeArtist.name}
         albumTitle={ALBUM_BY_TRACK_ID[activeTrack.track_id]?.title ?? null}
         trackTitle={activeTrack.title ?? ''}
         isPlaying={isPlaying}
         isFavorite={favorites.includes(activeTrack.track_id)}
+        currentTime={currentSecond}
+        duration={duration}
+        peaks={peaks}
+        onSeek={(time) => {
+          if (audioRef.current) audioRef.current.currentTime = time
+        }}
         onTogglePlay={() => {
           const audioEl = audioRef.current
           if (!audioEl) return
