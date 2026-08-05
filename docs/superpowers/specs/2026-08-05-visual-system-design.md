@@ -110,12 +110,13 @@ Spotify, Apple Music) и довести интерфейс MATplayer до так
 ### Объединение seek-bar и player-bar
 
 `SeekBar` перестаёт быть отдельной плавающей панелью и становится верхней
-секцией внутри `.player-bar` (класс `.player-bar__progress`). Разметка
-`PlayerControls`:
+секцией внутри `.player-bar` — рендерится первым потомком, без
+промежуточной обёртки (лишний пустой `div` ради одного класса не нужен,
+`.player-bar` уже `flex-direction: column`). Разметка `PlayerControls`:
 
 ```
 .player-bar
-  .player-bar__progress   (бывший .seek-bar, без своего фона/blur/border)
+  SeekBar   (бывшая .seek-bar-панель, без своего фона/blur/border)
   .player-bar__row
     .player-bar__meta
     .player-bar__transport
@@ -123,7 +124,8 @@ Spotify, Apple Music) и довести интерфейс MATplayer до так
 ```
 
 `SeekBar.jsx` остаётся отдельным компонентом (принимает те же пропсы), но
-теряет обёртку с `background`/`backdrop-filter`/`border` — их даёт родитель.
+класс `.seek-bar` теряет `position`/`background`/`backdrop-filter`/`border`
+— их даёт родитель `.player-bar`.
 `App.jsx` передаёт `onSeek` в `PlayerControls`, а не рендерит `SeekBar` как
 отдельный сосед — родительский компонент один, пропсов у `App.jsx` меньше.
 
