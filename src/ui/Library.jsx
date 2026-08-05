@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { searchLibraryEntries, formatMood, groupEntriesByAlbum } from '../lib/library/buildLibrary.js'
+import { IconClose, IconStar } from './icons.jsx'
 
 export function Library({
   entries,
@@ -40,7 +41,7 @@ export function Library({
           autoFocus
         />
         <button type="button" className="library-panel__close" onClick={onClose} aria-label="Close library">
-          ✕
+          <IconClose />
         </button>
       </div>
       <ul className="library-panel__list">
@@ -77,7 +78,7 @@ export function Library({
                       aria-label={`Favorite ${entry.title}`}
                       onClick={() => onToggleFavorite?.(entry.trackId)}
                     >
-                      {favorites.includes(entry.trackId) ? '★' : '☆'}
+                      <IconStar filled={favorites.includes(entry.trackId)} />
                     </button>
                   </li>
                 )
